@@ -4,6 +4,7 @@ public class ClockinParameters {
 	
 	private int employeeId;
 	private int shiftId;
+	private int locationId;
 	
 	public int getEmployeeId() {
 		return employeeId;
@@ -13,6 +14,9 @@ public class ClockinParameters {
 	}
 	public int getShiftId() {
 		return shiftId;
+	}
+	public int getLocationID() {
+		return locationId;
 	}
 	public void setShiftId(int shiftId) {
 		this.shiftId = shiftId;

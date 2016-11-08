@@ -30,7 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.Clockin;
+import org.ClockDbHandler;
 import org.ClockinParameters;
 import org.apache.wink.common.annotations.Workspace;
 
@@ -56,8 +56,8 @@ public class ClockinResource {
     	
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
 
-    	Clockin clk = new Clockin();
-    	if( !clk.clockin(params.getEmployeeId(), params.getShiftId()) ){
+		ClockDbHandler clk = new ClockDbHandler();
+    	if( !clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID()) ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;   	}
     	
     	String result = "{\"Status\":\""+ params.getEmployeeId() +"\"}";

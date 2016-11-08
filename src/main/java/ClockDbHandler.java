@@ -1,5 +1,7 @@
+package org;
 import oracle.jdbc.OraclePreparedStatement;
 import oracle.sql.TIMESTAMP;
+import org.DBVar;
 
 import java.sql.*;
 
@@ -13,12 +15,12 @@ public class ClockDbHandler {
         try{
             Class.forName("oracle.jdbc.driver.OracleDriver");
 
-            con = DriverManager.getConnection("jdbc:oracle:thin:@"+DBVar.DEV_URL+":"+DBVar.DEV_PORT+":"+DBVar.DEV_SID,DBVar.DEV_USERNAME,DBVar.DEV_PASSWORD);
+            con = DriverManager.getConnection("jdbc:oracle:thin:@"+DBVar.DEV_URL+":"+ DBVar.DEV_PORT+":"+DBVar.DEV_SID,DBVar.DEV_USERNAME,DBVar.DEV_PASSWORD);
 
         }catch(Exception e){        }
     }
 
-    public boolean signIn(int employee_id, int shift_id, int location_id){
+    public boolean clockInWithScheduledShift(int employee_id, int shift_id, int location_id){
         try {
             OraclePreparedStatement stmt = (OraclePreparedStatement) con.prepareStatement(
                     "INSERT INTO worked_shifts(start_time,scheduled_shift_ID,employee_ID, location_ID) VALUES (?,?,?,?)");
