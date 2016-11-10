@@ -42,8 +42,11 @@ import java.sql.*;
 @Path("clockin")
 public class ClockinResource {
 	
-	private final String PATH_CLOCKIN = "clockin";
-	
+	private static final String PATH_CLOCKIN = "clockin";
+	private static final String PATH_JSON          	= "json";
+	private static final String PATH_AUTHENTICATE  	= "authenticate";
+	private static final String PATH_DATABASE 		= "database";
+	 
 	Gson gson = new Gson();
 
     @Path(PATH_CLOCKIN)
@@ -56,17 +59,20 @@ public class ClockinResource {
     	
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
 
-		ClockDbHandler clk = new ClockDbHandler();
-    	if( !clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID()) ){
-    		status = Response.Status.INTERNAL_SERVER_ERROR;   	}
-    	
     	String result = "{\"Status\":\""+ params.getEmployeeId() +"\"}";
+    	
+		ClockDbHandler clk = new ClockDbHandler();
+		String error = clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+    	if( error.length() > 0 ){
+    		status = Response.Status.INTERNAL_SERVER_ERROR;
+    		result = "{\"Status\":\""+ error +"\"}"; 
+    	}
     	
 		return Response.status(status).entity(result).build();
     }
     
     	
-    @Path("/json")
+    @Path(PATH_JSON)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJson() {
@@ -83,9 +89,10 @@ public class ClockinResource {
     	return Response.status(Response.Status.OK).entity(result).build();	
     }
     
-    @Path("/authenticate")
+    @Path(PATH_AUTHENTICATE)
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response isAuth(@QueryParam("username") String username, @QueryParam("password") String password) {
     	
     	Status status = Response.Status.OK;
@@ -105,7 +112,7 @@ public class ClockinResource {
     	return Response.status(status).entity(result).header("Content-Type", "application/json").build();	
     }
     
-    @Path("/database")
+    @Path(PATH_DATABASE)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getHello() {

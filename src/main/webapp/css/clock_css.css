@@ -1,0 +1,87 @@
+html {
+	height: 100%;
+}
+body {
+    margin: 0;
+	background-color: #D3D3D3;
+	height: 100%;
+}
+
+.page-container {
+	height: inherit;
+}
+.middle-column {
+	margin-left: 20%;
+	margin-right: 20%;
+	background-color: #fff;
+	height: inherit;
+}
+.one-quarter-height {
+	height: 25%;
+	width: 100%;
+}
+.one-half-height {
+	height: 50%;
+	width: 100%;
+}
+.display-row {
+	width: inherit;
+	display: inline-block;
+	height: 100%;	
+}
+.center {
+	text-align: center;
+	height: inherit;
+}
+.one-half-width {
+	float: left;
+	width: 50%;
+	height: 100%;
+}
+
+.format-image {
+	width: 100px;
+	height: 100px;
+	border-radius: 50px;
+}
+
+
+/* Shifts */
+.shift-row {
+	height: 60px;
+	text-align: left;
+	padding-top: 15px;
+	padding-left: 20px;
+}
+.shift-date {
+	
+	
+}
+.shift-hours {
+
+}
+.previous-shift {
+	margin: 5px;
+	border: 1px solid #d3d3d3;
+	color: #d3d3d3;
+}
+.active-shift {
+	margin: 5px;
+	border-top: 1px solid #d3d3d3;
+	border-left: 1px solid #d3d3d3;
+	border-right: 4px solid #d3d3d3;
+	border-bottom: 4px solid #d3d3d3;
+}
+.future-shift {
+	margin: 5px;
+	border: 1px solid #d3d3d3;
+	background-color: white;
+}
+
+/* Clock in */
+.position-button {
+	margin: auto;
+	width: 50%;
+	height: 100%;
+	padding-top: 100px;
+}

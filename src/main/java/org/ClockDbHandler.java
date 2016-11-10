@@ -20,21 +20,22 @@ public class ClockDbHandler {
         }catch(Exception e){        }
     }
 
-    public boolean clockInWithScheduledShift(int employee_id, int shift_id, int location_id){
+    public String clockInWithScheduledShift(int employee_id, int shift_id, int location_id){
         try {
             OraclePreparedStatement stmt = (OraclePreparedStatement) con.prepareStatement(
-                    "INSERT INTO worked_shifts(start_time,scheduled_shift_ID,employee_ID, location_ID) VALUES (?,?,?,?)");
+                    "execute PROCEDURE_CLOCKIN(?,?,?,?,?)");
+            		//"INSERT INTO worked_shifts(start_time,scheduled_shift_ID,employee_ID, location_ID) VALUES (?,?,?,?)");
             stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
             stmt.setInt(2, shift_id);
             stmt.setInt(3, employee_id);
             stmt.setInt(4, location_id);
             int i = stmt.executeUpdate();
             if (i > 0)
-                return true;
+                return "";
 
         }catch(Exception e){
-            return false;
+            return e.getMessage();
         }
-        return false;
+        return "clockInWithScheduledShift: No rows updated.";
     }
 }
