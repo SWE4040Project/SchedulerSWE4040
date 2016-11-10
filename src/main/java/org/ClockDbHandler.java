@@ -2,6 +2,7 @@ package org;
 import oracle.jdbc.OraclePreparedStatement;
 import oracle.sql.TIMESTAMP;
 import org.DBVar;
+import org.DatabaseConnectionPool;
 
 import java.sql.*;
 
@@ -13,10 +14,8 @@ public class ClockDbHandler {
     public ClockDbHandler(){
         con = null;
         try{
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-
-            con = DriverManager.getConnection("jdbc:oracle:thin:@"+DBVar.DEV_URL+":"+ DBVar.DEV_PORT+":"+DBVar.DEV_SID,DBVar.DEV_USERNAME,DBVar.DEV_PASSWORD);
-
+        	DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();       	
+        	con = dbpool.getConnection();
         }catch(Exception e){        }
     }
 

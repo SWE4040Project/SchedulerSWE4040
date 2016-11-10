@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.ClockDbHandler;
 import org.ClockinParameters;
+import org.DatabaseConnectionPool;
 import org.apache.wink.common.annotations.Workspace;
 
 import com.google.gson.Gson;
@@ -42,9 +43,10 @@ import java.sql.*;
 @Path("clockin")
 public class ClockinResource {
 	
-	private static final String PATH_CLOCKIN = "clockin";
+	private static final String PATH_CLOCKIN 		= "clockin";
 	private static final String PATH_JSON          	= "json";
 	private static final String PATH_AUTHENTICATE  	= "authenticate";
+	private static final String PATH_CONNECTIONS	= "database/connections";
 	private static final String PATH_DATABASE 		= "database";
 	 
 	Gson gson = new Gson();
@@ -65,7 +67,7 @@ public class ClockinResource {
 		String error = clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
-    		result = "{\"Status\":\""+ error +"\"}"; 
+    		result = "{\"Status\":\""+ error +"\"}";
     	}
     	
 		return Response.status(status).entity(result).build();
@@ -112,6 +114,20 @@ public class ClockinResource {
     	return Response.status(status).entity(result).header("Content-Type", "application/json").build();	
     }
     
+    @Path(PATH_CONNECTIONS)
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDatabaseConnectionCount(){
+    	return Response.status(Response.Status.OK)
+    			.entity(
+    				"{\"Active Database Connections\": \"" 
+    				+ DatabaseConnectionPool.getInstance().getActiveConnectionCount()
+    				+ "\"}"
+    			)
+    			.header("Content-Type", "application/json").build();
+    }
+    
     @Path(PATH_DATABASE)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -124,14 +140,11 @@ public class ClockinResource {
     	Connection con = null;
     	try{  
     		
-    		//step1 load the driver class  
-    		Class.forName("oracle.jdbc.driver.OracleDriver");  
-    		  
-    		//step2 create  the connection object  
-    		con = DriverManager.getConnection(  
-    		"jdbc:oracle:thin:@localhost:1521:xe","system","TonThefloor22T");  
-    		  
-    		//step3 create the statement object  
+    		//connect to database via connection pool
+    		DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+        	con = dbpool.getConnection();
+        	
+    		//create the statement object  
     		Statement stmt = con.createStatement();  
     		  
     		//step4 execute query  
@@ -141,10 +154,13 @@ public class ClockinResource {
     			arr.add(rs.getString(3));
     		}
 		}catch(Exception e){ 
+			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 		}finally{
 			//step5 close the connection object  
-    		try {con.close();} catch (Exception e){}
+    		try {con.close();} catch (Exception e){
+    			System.out.println("Finally: " + e.getMessage());
+    		}
 		}
     	
     	String result = gson.toJson(arr);
