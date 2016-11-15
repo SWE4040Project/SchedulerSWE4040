@@ -7,6 +7,8 @@ Apache Wink Examples Apps :: Bookmarks
 
 
 From: 'an unknown organization'
+  - Gson (https://github.com/google/gson/gson) com.google.code.gson:gson:jar:2.8.0
+    License: Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - JAXB RI (https://jaxb.dev.java.net/) com.sun.xml.bind:jaxb-impl:jar:2.2.1.1
     License: CDDL 1.0  (https://glassfish.dev.java.net/public/CDDL+GPL.html)    License: GPL2 w/ CPE  (https://glassfish.dev.java.net/public/CDDL+GPL.html)
   - JavaBeans Activation Framework (JAF) (http://java.sun.com/products/javabeans/jaf/index.jsp) javax.activation:activation:jar:1.1

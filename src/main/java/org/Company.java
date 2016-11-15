@@ -1,3 +1,4 @@
+package org;
 import oracle.jdbc.OraclePreparedStatement;
 import oracle.jdbc.OracleTypes;
 
@@ -49,7 +50,7 @@ public class Company {
             }
         }catch(Exception e){
         }finally{
-            //step5 close the connection object
+            //close the connection object
             try {
                 con.close();
             } catch (Exception e){
