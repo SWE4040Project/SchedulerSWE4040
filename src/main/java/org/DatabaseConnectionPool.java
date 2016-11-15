@@ -33,7 +33,7 @@ public class DatabaseConnectionPool {
 	    p.setMaxWait(10000);
 	    p.setRemoveAbandonedTimeout(60);
 	    p.setMinEvictableIdleTimeMillis(30000);
-	    p.setMinIdle(10);
+	    p.setMinIdle(2);
 	    p.setLogAbandoned(false);
 	    p.setRemoveAbandoned(false);
 	    p.setJdbcInterceptors(
