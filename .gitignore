@@ -1,4 +1,4 @@
-.idea/
-target/
-src/main/java/DBVar.java
+.idea/*
 Scheduler.iml
+/src/main/java/org/DBVar.java
+/target/**
