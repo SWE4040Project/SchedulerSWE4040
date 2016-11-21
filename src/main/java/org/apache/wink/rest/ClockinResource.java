@@ -47,6 +47,7 @@ public class ClockinResource {
 	private static final String PATH_CLOCKOUT 		= "clockout";
 	private static final String PATH_BREAKIN 		= "breakin";
 	private static final String PATH_BREAKOUT 		= "breakout";
+	private static final String PATH_ADDSHIFTNOTE 	= "addshiftnote";
 	private static final String PATH_JSON          	= "json";
 	private static final String PATH_AUTHENTICATE  	= "authenticate";
 	private static final String PATH_CONNECTIONS	= "database/connections";
@@ -134,6 +135,28 @@ public class ClockinResource {
     	
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.breakOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+    	if( error.length() > 0 ){
+    		status = Response.Status.INTERNAL_SERVER_ERROR;
+    		result = "{\"Status\":\""+ error +"\"}";
+    	}
+    	
+		return Response.status(status).entity(result).build();
+    }
+    
+    @Path(PATH_ADDSHIFTNOTE)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addnote(String obj) {
+    	
+    	Status status = Response.Status.OK;
+    	
+    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
+
+    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" has added or modified their shift notes.\"}";
+    	
+		ClockDbHandler clk = new ClockDbHandler();
+		String error = clk.addNoteWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getWorkedNote());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";

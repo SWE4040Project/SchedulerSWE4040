@@ -249,4 +249,40 @@ public class ClockDbHandler {
         	try{stmt.close();}catch(Exception ignore){}
         }
     }
+    
+    public String addNoteWithScheduledShift(int employee_id, int shift_id, String worked_note){
+    	OraclePreparedStatement stmt = null;
+    	try {
+    		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
+    		Clock_State state = emp.getEmployeeClockState();
+        	if(state != Clock_State.CLOCKED_IN){
+        		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
+        	}
+        	System.out.println("Log: Clock_State =" + state.name());
+        	
+        	//truncate if worked_note is longer than 256
+        	if(worked_note.length()>256){
+        		worked_note = worked_note.substring(0,255);
+        	}
+        	
+        	System.out.println("Log: worked_note: "+ worked_note);
+        	
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+            		"update worked_shifts set worked_notes = ? "
+            		+ "where id = ?");
+            stmt.setString(1, worked_note);
+            stmt.setInt(2, emp.getCurrent_worked_shift_id());
+            int i = stmt.executeUpdate();
+            if (i <= 0){
+            	return "Update of breaks failed => employeeId "+employee_id+" and shiftId "+shift_id;
+            }
+        	System.out.println("Log: Clock_State =" + state.name());
+            return ""; //success
+            	
+        }catch(Exception e){
+            return e.getMessage();
+        }finally{
+        	try{stmt.close();}catch(Exception ignore){}
+        }
+    }
 }
