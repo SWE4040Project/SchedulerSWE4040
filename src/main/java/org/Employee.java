@@ -9,9 +9,10 @@ public class Employee {
     private int company_id;
     private boolean manager;
     private boolean super_admin;
+    private int current_worked_shift_id;
     private Clock_State emp_clock_state;
     public enum Clock_State {
-    	NOT_CLOCKED_IN, CLOCKED_IN, BREAK    	
+    	NOT_CLOCKED_IN, CLOCKED_IN, BREAK, SHIFT_COMPLETE    	
     };
     
     public Employee(int id, String name){
@@ -78,5 +79,13 @@ public class Employee {
 
 	public void setEmployeeClockState(Clock_State emp_clock_state) {
 		this.emp_clock_state = emp_clock_state;
+	}
+
+	public int getCurrent_worked_shift_id() {
+		return current_worked_shift_id;
+	}
+
+	public void setCurrent_worked_shift_id(int current_worked_shift_id) {
+		this.current_worked_shift_id = current_worked_shift_id;
 	}
 }

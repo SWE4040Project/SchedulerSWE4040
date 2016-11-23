@@ -44,6 +44,10 @@ import java.sql.*;
 public class ClockinResource {
 	
 	private static final String PATH_CLOCKIN 		= "clockin";
+	private static final String PATH_CLOCKOUT 		= "clockout";
+	private static final String PATH_BREAKIN 		= "breakin";
+	private static final String PATH_BREAKOUT 		= "breakout";
+	private static final String PATH_ADDSHIFTNOTE 	= "addshiftnote";
 	private static final String PATH_JSON          	= "json";
 	private static final String PATH_AUTHENTICATE  	= "authenticate";
 	private static final String PATH_CONNECTIONS	= "database/connections";
@@ -61,7 +65,7 @@ public class ClockinResource {
     	
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
 
-    	String result = "{\"Status\":\""+ params.getEmployeeId() +"\"}";
+    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is clocked in.\"}";
     	
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
@@ -73,7 +77,101 @@ public class ClockinResource {
 		return Response.status(status).entity(result).build();
     }
     
+    @Path(PATH_CLOCKOUT)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response clockout(String obj) {
     	
+    	Status status = Response.Status.OK;
+    	
+    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
+
+    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is clocked out.\"}";
+    	
+		ClockDbHandler clk = new ClockDbHandler();
+		String error = clk.clockOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+    	if( error.length() > 0 ){
+    		status = Response.Status.INTERNAL_SERVER_ERROR;
+    		result = "{\"Status\":\""+ error +"\"}";
+    	}
+    	
+		return Response.status(status).entity(result).build();
+    }
+    
+    @Path(PATH_BREAKIN)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response breakin(String obj) {
+    	
+    	Status status = Response.Status.OK;
+    	
+    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
+
+    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is on break.\"}";
+    	
+		ClockDbHandler clk = new ClockDbHandler();
+		String error = clk.breakInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+    	if( error.length() > 0 ){
+    		status = Response.Status.INTERNAL_SERVER_ERROR;
+    		result = "{\"Status\":\""+ error +"\"}";
+    	}
+    	
+		return Response.status(status).entity(result).build();
+    }
+    
+    @Path(PATH_BREAKOUT)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response breakout(String obj) {
+    	
+    	Status status = Response.Status.OK;
+    	
+    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
+
+    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is off break.\"}";
+    	
+		ClockDbHandler clk = new ClockDbHandler();
+		String error = clk.breakOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+    	if( error.length() > 0 ){
+    		status = Response.Status.INTERNAL_SERVER_ERROR;
+    		result = "{\"Status\":\""+ error +"\"}";
+    	}
+    	
+		return Response.status(status).entity(result).build();
+    }
+    
+    @Path(PATH_ADDSHIFTNOTE)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addnote(String obj) {
+    	
+    	Status status = Response.Status.OK;
+    	
+    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
+
+    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" has added or modified their shift notes.\"}";
+    	
+		ClockDbHandler clk = new ClockDbHandler();
+		String error = clk.addNoteWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getWorkedNote());
+    	if( error.length() > 0 ){
+    		status = Response.Status.INTERNAL_SERVER_ERROR;
+    		result = "{\"Status\":\""+ error +"\"}";
+    	}
+    	
+		return Response.status(status).entity(result).build();
+    }
+    
+    
+    /*
+     * Test REST calls
+     * 1. Json is the most basic call - to ensure the system is up and running
+     * 2. 
+     */
+       	
     @Path(PATH_JSON)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
