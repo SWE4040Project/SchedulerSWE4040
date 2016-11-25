@@ -1,0 +1,27 @@
+#title_header{
+    height: 40px;
+    width: 100%;
+    border-bottom: 3px solid #01c120;
+    background-color: #00d00f;
+}
+
+#content_container{
+    width: 100%;
+    height: 800px;
+    background-color: #9ACD32;
+    padding-top: 100px;
+}
+
+.login_field{
+    width: 33%;
+    margin: auto;
+    padding: 10px 10px 10px 10px;
+    text-align: center;
+}
+
+
+
+#footer{
+    background-color: #242424;
+    height: 80px;
+}
