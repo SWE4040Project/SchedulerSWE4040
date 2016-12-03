@@ -6,9 +6,6 @@ import org.Employee.Clock_State;
 
 import java.sql.*;
 
-/**
- * Created by Josh on 2016-11-06.
- */
 public class ClockDbHandler {
     Connection con;
     public ClockDbHandler(){
@@ -19,7 +16,7 @@ public class ClockDbHandler {
         }catch(Exception e){        }
     }
     
-    public Clock_State getEmployeeClockState(int employee_id, int shift_id){
+    private Clock_State getEmployeeClockState(int employee_id, int shift_id){
     	OraclePreparedStatement stmt = null;
     	try {
             stmt = (OraclePreparedStatement) con.prepareStatement(
@@ -50,7 +47,7 @@ public class ClockDbHandler {
     	return null;
     }
     
-    public Employee getEmployeeClockStateandWorkedShiftID(int employee_id, int shift_id){
+    private Employee getEmployeeClockStateandWorkedShiftID(int employee_id, int shift_id){
     	OraclePreparedStatement stmt = null;
     	try {
             stmt = (OraclePreparedStatement) con.prepareStatement(
@@ -89,7 +86,7 @@ public class ClockDbHandler {
     	return null;
     }
     
-    public boolean updateEmployeeState(int employee_id, Clock_State clockedIn) {
+    private boolean updateEmployeeState(int employee_id, Clock_State clockedIn) {
     	OraclePreparedStatement stmt = null;
     	try {
     		//parse result

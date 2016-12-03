@@ -25,6 +25,18 @@
 <web-app>
 	<display-name>Wink SDK demo</display-name>
 	<description>Demonstration of SDK features</description>
+	
+	<filter>
+	    <filter-name>SessionCheckFilter</filter-name>
+	    <filter-class>org.SessionCheckFilter</filter-class>
+	</filter>
+	<filter-mapping>
+	    <filter-name>SessionCheckFilter</filter-name>
+	    <url-pattern>/rest/clockin/*</url-pattern> <!-- url from where you implement the filtering -->
+	    <url-pattern>/clock_in.jsp</url-pattern>
+	    <url-pattern>/in_shift.jsp</url-pattern>
+	    <url-pattern>/on_break.jsp</url-pattern>
+	</filter-mapping>
 
 	<servlet>
 		<servlet-name>restSdkService</servlet-name>
@@ -38,7 +50,7 @@
 		<init-param>
 			<param-name>propertiesLocation</param-name>
 			<param-value>/WEB-INF/bookmarks.properties</param-value>
-		</init-param>
+        </init-param>
 	</servlet>
 
 	<servlet-mapping>
@@ -49,4 +61,27 @@
 	<welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+    
+    <!-- Require HTTPS for everything except /img (favicon) and /css. -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>HTTPSOnly</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>HTTPSOrHTTP</web-resource-name>
+            <url-pattern>*.ico</url-pattern>
+            <url-pattern>/images/*</url-pattern>
+            <url-pattern>/css/*</url-pattern>
+            <url-pattern>/js/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
 </web-app>

@@ -1,4 +1,10 @@
 $(document).ready(function() {
+	//set previous screen
+    if(Cookies.get(SCHEDULER_APP.previousScreenCookieName) != "in_shift"){
+    	//redirect to index
+    	window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
+    }
+    
 	$("#button_breakout").click(function(){
     	breakout();
     });  
@@ -23,8 +29,11 @@ function breakout(){
 	    success: function(data) {
 	        console.log("Data: " + data.Status);
 	        
+	      //set previous screen
+	        Cookies.set(SCHEDULER_APP.previousScreenCookieName,"on_break");
+	        
 	        //clocked in page - replaces current page in back stack
-	        window.location.replace(SCHEDULER_APP.base_url + '/in_shift.jsp');
+	        window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
 	    },
 		error: function(err) {
 	        alert("Error: " + err.responseText);
