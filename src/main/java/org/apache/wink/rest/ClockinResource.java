@@ -48,6 +48,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 @Path("/")
 public class ClockinResource {
@@ -254,6 +257,52 @@ public class ClockinResource {
     	
 		return Response.status(status).entity(result).build();
     }
+
+	@Path("/shifts/recent")
+	@GET
+	public Response getRecentShifts() {
+
+		Status status = Response.Status.OK;
+		Gson gson = new Gson();
+		ArrayPOJO arr = new ArrayPOJO();
+
+		Connection con = null;
+		try{
+
+			//connect to database via connection pool
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+
+			//create the statement object
+			Statement stmt = con.createStatement();
+
+			//step4 execute query
+			Calendar cal = Calendar.getInstance();
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			cal.add(Calendar.HOUR,-12);
+			String yesterdayTimeStamp = dateFormat.format(cal.getTime());
+			//String queryData = "select * from SCHEDULED_SHIFTS where START_TIME between '2016-11-19 00:00:00' and '2016-11-21 23:59:59'";
+			String queryData = "select * from SCHEDULED_SHIFTS where START_TIME >= '" + yesterdayTimeStamp + "'";
+			System.out.println(queryData);
+			ResultSet rs=stmt.executeQuery(queryData);
+			while(rs.next())  {
+				arr.add(rs.getString(1));
+				arr.add(rs.getString(2));
+			}
+		}catch(Exception e){
+			System.out.println("Catching exception: " + e.getMessage());
+			status = Response.Status.INTERNAL_SERVER_ERROR;
+		}finally{
+			//step5 close the connection object
+			try {con.close();} catch (Exception e){
+				System.out.println("Finally: " + e.getMessage());
+			}
+		}
+
+		String result = gson.toJson(arr);
+
+		return Response.status(status).entity(result).header("Content-Type", "application/json").build();
+	}
     
     @Path(LOGIN)
     @POST

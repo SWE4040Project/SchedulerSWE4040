@@ -8,5 +8,5 @@ public class DBVar {
     public static final String DEV_PORT = "1521";
     public static final String DEV_SID = "xe";
     public static final String DEV_USERNAME = "SYSTEM";
-    public static final String DEV_PASSWORD = "TonThefloor22T";
+    public static final String DEV_PASSWORD = "c4800821";
 }
