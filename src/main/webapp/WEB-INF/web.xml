@@ -33,11 +33,20 @@
 	<filter-mapping>
 	    <filter-name>SessionCheckFilter</filter-name>
 	    <url-pattern>/rest/clockin/*</url-pattern> <!-- url from where you implement the filtering -->
-	    <url-pattern>/clock_in.jsp</url-pattern>
-	    <url-pattern>/in_shift.jsp</url-pattern>
-	    <url-pattern>/on_break.jsp</url-pattern>
 	</filter-mapping>
-
+	<filter-mapping>
+	    <filter-name>SessionCheckFilter</filter-name>
+	    <url-pattern>/clock_in.jsp</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
+	<filter-mapping>
+	    <filter-name>SessionCheckFilter</filter-name>
+	    <url-pattern>/in_shift.jsp</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
+	<filter-mapping>
+	    <filter-name>SessionCheckFilter</filter-name>
+	    <url-pattern>/on_break.jsp</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
+	
 	<servlet>
 		<servlet-name>restSdkService</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
