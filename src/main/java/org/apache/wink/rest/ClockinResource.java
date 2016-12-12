@@ -333,16 +333,28 @@ public class ClockinResource {
     			.header("Content-Type", "application/json").build();
     }
     
+    private enum DATABASE_TABLES {
+    	employees,
+    	worked_shifts,
+    	breaks,
+    	companies,
+    	location,
+    	positions,
+    	scheduled_shifts,
+    	system,
+    	employee_locations,
+    	employee_positions
+    }
+    
     @Path(PATH_DATABASE)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getData(@QueryParam("table") String table) {
     	
     	Status status = Response.Status.OK;
-    	Gson gson = new Gson();
     	JsonObject dataTable = new JsonObject();
-
     	Connection con = null;
+    	String result = null;
     	try{  
     		
     		//connect to database via connection pool
@@ -351,9 +363,19 @@ public class ClockinResource {
         	
     		//create the statement object  
     		Statement stmt = con.createStatement();  
-    		  
-    		//step4 execute query  
-    		ResultSet rs = stmt.executeQuery("select * from " + table);  
+
+    		//prevent sql injection
+    		String sqlStatement = null;
+    		try {
+    			System.out.println("table: " + table);
+			    DATABASE_TABLES.valueOf(table.toLowerCase());
+			    sqlStatement = "select * from " + table;
+			} catch (IllegalArgumentException e) {
+			    throw new Exception("Table does not exist in the database.");
+			}
+    		
+    		//step execute query
+    		ResultSet rs = stmt.executeQuery(sqlStatement);
     		
     		ResultSetMetaData rsmd = rs.getMetaData();
     		int rsmdLength = rsmd.getColumnCount();
@@ -376,19 +398,20 @@ public class ClockinResource {
     		}
     		dataTable.add("rows", array);
     		dataTable.addProperty("rowCount",rowCount);
+    		System.out.println("dataTable.toString() " + dataTable.toString());
+        	
+        	result = dataTable.toString();
+    		
 		}catch(Exception e){ 
 			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
+			result = e.getMessage();
 		}finally{
 			//step5 close the connection object  
     		try {con.close();} catch (Exception e){
     			System.out.println("Finally: " + e.getMessage());
     		}
 		}
-    	System.out.println("dataTable.toString() " + dataTable.toString());
-    	
-    	String result = dataTable.toString();
-    		  
         return Response.status(status).entity(result).header("Content-Type", "application/json").build();
     }
 }
