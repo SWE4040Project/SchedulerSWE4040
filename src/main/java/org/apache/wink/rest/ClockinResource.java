@@ -27,6 +27,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -42,6 +43,9 @@ import org.WebTokens;
 import org.Employee.Clock_State;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.sql.*;
 
@@ -332,12 +336,12 @@ public class ClockinResource {
     @Path(PATH_DATABASE)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getHello() {
+    public Response getData(@QueryParam("table") String table) {
     	
     	Status status = Response.Status.OK;
     	Gson gson = new Gson();
-    	ArrayPOJO arr = new ArrayPOJO();
-    	    	
+    	JsonObject dataTable = new JsonObject();
+
     	Connection con = null;
     	try{  
     		
@@ -349,11 +353,29 @@ public class ClockinResource {
     		Statement stmt = con.createStatement();  
     		  
     		//step4 execute query  
-    		ResultSet rs=stmt.executeQuery("select * from users");  
+    		ResultSet rs = stmt.executeQuery("select * from " + table);  
+    		
+    		ResultSetMetaData rsmd = rs.getMetaData();
+    		int rsmdLength = rsmd.getColumnCount();
+    		dataTable.addProperty("columnCount",rsmdLength);
+    		JsonArray jaColumns = new JsonArray();
+			for(int i=0; i < rsmdLength; i++){
+				jaColumns.add(rsmd.getColumnLabel(i+1));
+			}
+			dataTable.add("columns", jaColumns);
+    		int rowCount = 0;
+    		
+    		JsonArray array = new JsonArray();
     		while(rs.next())  {
-    			arr.add(rs.getString(2));
-    			arr.add(rs.getString(3));
+    			rowCount++;
+    			JsonArray ja = new JsonArray();
+    			for(int i=0; i < rsmdLength; i++){
+    				ja.add(rs.getString(i+1));
+    			}
+    			array.add(ja);
     		}
+    		dataTable.add("rows", array);
+    		dataTable.addProperty("rowCount",rowCount);
 		}catch(Exception e){ 
 			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
@@ -363,8 +385,9 @@ public class ClockinResource {
     			System.out.println("Finally: " + e.getMessage());
     		}
 		}
+    	System.out.println("dataTable.toString() " + dataTable.toString());
     	
-    	String result = gson.toJson(arr);
+    	String result = dataTable.toString();
     		  
         return Response.status(status).entity(result).header("Content-Type", "application/json").build();
     }
