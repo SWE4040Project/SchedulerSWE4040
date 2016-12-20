@@ -60,7 +60,7 @@ public class AuthenticateDbHandler {
             		+ "COMPANIES_ID,"
             		+ "MANAGER,"
             		+ "SUPER_ADMIN "
-            		+ "from employees where name = ? and web_password = ? ");
+            		+ "from employees where company_employee_id = ? and web_password = ? ");
             stmt.setString(1, username);
             stmt.setString(2, password);
             ResultSet i = stmt.executeQuery();
@@ -70,7 +70,7 @@ public class AuthenticateDbHandler {
 	            int iter = 1;
 	        	int id = Integer.parseInt(i.getString(iter++));
 	        	String name = i.getString(iter++);
-	        	int comp_emp_id = Integer.parseInt(i.getString(iter++));
+	        	String comp_emp_id = i.getString(iter++);
 	        	int comp_id = Integer.parseInt(i.getString(iter++));
 	        	boolean mang = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
 	        	boolean super_ad = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;

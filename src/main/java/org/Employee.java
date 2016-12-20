@@ -5,7 +5,7 @@ package org;
 public class Employee {
     private int id;
     private String name;
-    private int company_employee_id;
+    private String company_employee_id;
     private int company_id;
     private boolean manager;
     private boolean super_admin;
@@ -22,7 +22,7 @@ public class Employee {
     
     public Employee(int id, 
     		String name, 
-    		int company_employee_id, 
+    		String company_employee_id,
     		int company_id, 
     		boolean manager,
     		boolean super_admin){
@@ -50,11 +50,11 @@ public class Employee {
 		this.name = name;
 	}
 
-	public int getCompany_employee_id() {
+	public String getCompany_employee_id() {
 		return company_employee_id;
 	}
 
-	public void setCompany_employee_id(int company_employee_id) {
+	public void setCompany_employee_id(String company_employee_id) {
 		this.company_employee_id = company_employee_id;
 	}
 
