@@ -60,7 +60,7 @@ public class AuthenticateDbHandler {
             		+ "COMPANIES_ID,"
             		+ "MANAGER,"
             		+ "SUPER_ADMIN "
-            		+ "from employees where company_employee_id = ? and web_password = ? ");
+            		+ "from employees where name = ? and web_password = ? ");
             stmt.setString(1, username);
             stmt.setString(2, password);
             ResultSet i = stmt.executeQuery();
@@ -205,5 +205,43 @@ public class AuthenticateDbHandler {
 	    }
 	   
 	    return result;
+	}
+
+	public boolean isSuperAdmin(WebTokens webTokens) {
+		try{
+    		String compactJws = webTokens.getJsonWebToken();
+	    	String encodedKey = getSecretKey();
+	        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
+	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
+	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
+	
+		    System.out.println("Log: trusted:  " + compactJws);
+		    //This line will throw an exception if it is not a signed JWS (as expected)
+		    Claims claims = Jwts.parser()         
+		       .setSigningKey(signingKey)
+		       .parseClaimsJws(compactJws).getBody();
+		   
+		    String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+		    if( !webTokens.getXsrfToken().equals(xsrfToken) ){
+		    	throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+		    }
+		    
+		    //CHECK IF SUPER ADMIN HERE
+		    boolean isSuperAdmin = (Boolean) claims.get(JsonVar.SUPER_ADMIN);
+		    if( !isSuperAdmin ){
+		    	throw new SignatureException("Not super admin");
+		    }
+		    
+		    return true;
+    	} catch (SignatureException se) {
+    	    //don't trust the JWT!
+    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage()); 
+    	} catch (ExpiredJwtException eje){
+    		//don't trust the JWT!
+    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+    	} catch (Exception e){
+    		e.printStackTrace();
+    	}
+    	return false;
 	}
 }

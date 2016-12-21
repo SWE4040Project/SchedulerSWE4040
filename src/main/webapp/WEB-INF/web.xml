@@ -27,24 +27,36 @@
 	<description>Demonstration of SDK features</description>
 	
 	<filter>
-	    <filter-name>SessionCheckFilter</filter-name>
-	    <filter-class>org.SessionCheckFilter</filter-class>
+	    <filter-name>AuthenticationFilter</filter-name>
+	    <filter-class>org.AuthenticationFilter</filter-class>
+	</filter>
+	<filter>
+	    <filter-name>AdminAuthenticationFilter</filter-name>
+	    <filter-class>org.AdminAuthenticationFilter</filter-class>
 	</filter>
 	<filter-mapping>
-	    <filter-name>SessionCheckFilter</filter-name>
+	    <filter-name>AuthenticationFilter</filter-name>
 	    <url-pattern>/rest/clockin/*</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
 	<filter-mapping>
-	    <filter-name>SessionCheckFilter</filter-name>
+	    <filter-name>AuthenticationFilter</filter-name>
 	    <url-pattern>/clock_in.jsp</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
 	<filter-mapping>
-	    <filter-name>SessionCheckFilter</filter-name>
+	    <filter-name>AuthenticationFilter</filter-name>
 	    <url-pattern>/in_shift.jsp</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
 	<filter-mapping>
-	    <filter-name>SessionCheckFilter</filter-name>
+	    <filter-name>AuthenticationFilter</filter-name>
 	    <url-pattern>/on_break.jsp</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
+	<filter-mapping>
+	    <filter-name>AdminAuthenticationFilter</filter-name>
+	    <url-pattern>/rest/database/*</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
+	<filter-mapping>
+	    <filter-name>AdminAuthenticationFilter</filter-name>
+	    <url-pattern>/admin.jsp</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
 	
 	<servlet>

@@ -44,15 +44,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.Employee.Clock_State;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import oracle.jdbc.OraclePreparedStatement;
-import oracle.sql.TIMESTAMP;
 
 import java.sql.*;
 import java.util.Iterator;
@@ -65,14 +62,15 @@ public class ClockinResource {
 	private static final String PATH_BREAKIN 			= "clockin/breakin";
 	private static final String PATH_BREAKOUT 			= "clockin/breakout";
 	private static final String PATH_ADDSHIFTNOTE 		= "clockin/addshiftnote";
+	private static final String PATH_TEST_AUTH      	= "clockin/testauth";
 	private static final String PATH_JSON          		= "json";
 	private static final String LOGIN  					= "login";
-	private static final String PATH_CONNECTIONS		= "database/connections";
+	private static final String PATH_CONNECTIONS		= "connections/database";
 	private static final String PATH_DATABASE 			= "database";
 	private static final String PATH_DATABASE_EDIT		= "database/edit";
 	private static final String PATH_DATABASE_DELETE 	= "database/delete";
 	private static final String PATH_DATABASE_ADD 		= "database/add";
-	private static final String PATH_TEST_AUTH      	= "clockin/testauth";
+	
 	 
 	Gson gson = new Gson();
 
