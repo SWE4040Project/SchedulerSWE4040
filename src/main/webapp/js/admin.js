@@ -1,9 +1,15 @@
 $(document).ready(function() {
 	console.log("Loading admin page.");
+	
+	$('#addButton').on( "click", function() {
+		add_row();
+	});
+	
 	load_data('employees');
 });
 
 var editColumns = [];
+var currentTableName = null;
 
 function edit_row(no)
 {
@@ -20,23 +26,160 @@ function edit_row(no)
 			+ editColumns[i]+no +'" placeholder="Name" value="'
 			+ selectedRow[i].innerHTML +'"></div></div>';
 	}
-	modalContent += '';
 	console.log("modalContent " + modalContent + "\n");
 	modalBody.innerHTML = modalContent;
 	
 	console.log("edit_button"+no);
-	$('#editModal').modal({
-		show: 'true'
+	$('#editModal').modal('show');
+	
+	$('#saveChangesButton').on( "click", function() {
+		$('#saveChangesButton').prop('disabled', true);
+		
+		var url = "https://localhost:8443/Scheduler/rest/database/edit?table="+currentTableName;
+		
+		//get current input data
+		var values = [];
+		$('input').each(function() {
+		    values.push($(this).val());
+		});
+		
+		//get params from page
+		var params = {
+			columnNames: editColumns,
+			columnData: values
+		}
+		
+		$.ajax({
+		    url: url,
+		    type: 'POST',
+		    data: JSON.stringify(params),
+		    contentType: 'application/json',
+		    dataType: 'json',
+		    async: true,
+		    success: function(data) {
+		        $('#saveChangesButton').prop('disabled', false);
+		        $('#editModal').modal('hide');
+		        $('#successAlert').modal('show').fadeIn( 500 );
+		        setTimeout(function () {
+                    window.location.replace(SCHEDULER_APP.base_url + '/admin.jsp');
+                }, 1800);
+		    },
+			error: function(err) {
+		        alert("Error: " + err.responseText);
+		        $('#saveChangesButton').prop('disabled', false);
+		    }
+		});
+	});
+}
+
+function add_row()
+{
+	var modalBody = document.getElementById("add-modal-body");
+	var modalContent = '';
+	for(var i = 0; i < editColumns.length; i++){
+		modalContent += '<div class="form-group" style="margin-top: 0; overflow: hidden;"><label class="col-md-4 control-label">'
+			+ editColumns[i]
+			+'</label><div class="col-md-8"><input type="text" class="form-control"'
+			+ 'id="'
+			+ editColumns[i]+i +'" placeholder="'
+			+ editColumns[i].toLowerCase() + '"></div></div>';
+	}
+	console.log("modalContent " + modalContent + "\n");
+	modalBody.innerHTML = modalContent;
+	
+	$('#addModal').modal('show');
+	
+	$('#addChangesButton').on( "click", function() {
+		$('#addChangesButton').prop('disabled', true);
+		
+		var url = "https://localhost:8443/Scheduler/rest/database/add?table="+currentTableName;
+		
+		//get current input data
+		var values = [];
+		$('input').each(function() {
+		    values.push($(this).val());
+		});
+		
+		//get params from page
+		var params = {
+			columnNames: editColumns,
+			columnData: values
+		}
+		
+		$.ajax({
+		    url: url,
+		    type: 'POST',
+		    data: JSON.stringify(params),
+		    contentType: 'application/json',
+		    dataType: 'json',
+		    async: true,
+		    success: function(data) {
+		        $('#addChangesButton').prop('disabled', false);
+		        $('#addModal').modal('hide');
+		        $('#successAlert').modal('show').fadeIn( 500 );
+		        setTimeout(function () {
+                    window.location.replace(SCHEDULER_APP.base_url + '/admin.jsp');
+                }, 1800);
+		    },
+			error: function(err) {
+		        alert("Error: " + err.responseText);
+		        $('#addChangesButton').prop('disabled', false);
+		    }
+		});
+	});
+}
+
+function delete_row(no)
+{
+	var selectedTable = document.getElementById("adminTable");
+	var selectedRow = selectedTable.rows[no].cells;
+	var rowId = selectedRow[0].innerHTML;
+	
+	console.log("delete_button"+no);
+	$('#deleteModal').modal('show');
+	
+	$('#deleteButton').on( "click", function() {
+		$('#deleteButton').prop('disabled', true);
+		
+		var url = "https://localhost:8443/Scheduler/rest/database/delete?table="+currentTableName;
+		
+		//get params from page
+		var params = {
+			rowId: editColumns[0],
+			id: rowId
+		}
+		
+		$.ajax({
+		    url: url,
+		    type: 'POST',
+		    data: JSON.stringify(params),
+		    contentType: 'application/json',
+		    dataType: 'json',
+		    async: true,
+		    success: function(data) {
+		        $('#deleteButton').prop('disabled', false);
+		        $('#deleteModal').modal('hide');
+		        $('#successAlert').modal('show').fadeIn( 500 );
+		        setTimeout(function () {
+                    window.location.replace(SCHEDULER_APP.base_url + '/admin.jsp');
+                }, 1800);
+		    },
+			error: function(err) {
+		        alert("Error: " + err.responseText);
+		        $('#deleteButton').prop('disabled', false);
+		    }
+		});
 	});
 }
 
 function load_data(tableName){
 	console.log("tableName " + tableName);
+	currentTableName = tableName;
 	if(tableName == null){
 		tableName = 'employees';
 	}
-	var tableTitle = document.getElementById("tableTitle");
-	tableTitle.innerHTML = tableName.toUpperCase() + " table";
+	var tableTitle = document.getElementById("dropdownLabel");
+	tableTitle.innerHTML = "<h3>" + tableName.toUpperCase() + " table <b class='caret'></b></h3>";
 	
 	var url = "https://localhost:8443/Scheduler/rest/database?table="+tableName;
 	$.ajax({
@@ -50,8 +193,6 @@ function load_data(tableName){
 	        console.log("data.rowCount: " + data.rowCount);
 	        console.log("data.rows: " + data.rows);
 	        
-	        //TODO if no data...
-	        
 	        //set columns
 	        editColumns = [];
             var table = document.getElementById("adminTable");
@@ -63,9 +204,15 @@ function load_data(tableName){
             columns += '</tr>';
             table.tHead.innerHTML = columns;
             
+          //if no data
+	        if(data.rowCount == 0){
+	        	table.insertRow(1).innerHTML = "<td><i>No data to be loaded.</i></td>";
+	        	return;
+	        }
+            
             //add rows
             for(i = 0; i < data.rowCount; i++){
-	        	var row = table.insertRow(i+1);
+	        	var row = table.insertRow(i+1);	
 	        	var tableRow = '';
 	        	if(i%2 == 0){
 	        		tableRow = 'class="info"';
@@ -79,7 +226,9 @@ function load_data(tableName){
 	            	+ '><a href="javascript:void(0)" class="btn btn-sm btn-raised btn-primary"'
 	            	+ 'onclick="edit_row('+ (i+1) +')"'
 	            	+ 'id="edit_button'+ (i+1) +'">Edit</a>'
-	            	+ '<a href="javascript:void(0)" class="btn btn-sm btn-raised btn-danger">Delete</a></td>';
+	            	+ '<a href="javascript:void(0)" class="btn btn-sm btn-raised btn-danger"'
+	            	+ 'onclick="delete_row('+ (i+1) +')"'
+	            	+ 'id="delete_button'+ (i+1) +'">Delete</a></td>';
 	            row.innerHTML = buildRow;
 	        }
 	    },

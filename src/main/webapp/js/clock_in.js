@@ -35,7 +35,6 @@ function clockin(){
 	        
 	        //clocked in page - replaces current page in back stack
 	        window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
-	        //window.location.replace(SCHEDULER_APP.base_url + '/in_shift.jsp');
 	    },
 		error: function(err) {
 	        alert("Error: " + err.responseText);
