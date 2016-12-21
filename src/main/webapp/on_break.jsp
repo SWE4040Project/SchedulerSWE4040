@@ -4,8 +4,7 @@
 <html>
 <head>
 	<%@include file="./common/header.jsp" %>
-	<script src="./js/add_shift_note.js"></script>
-	<script src="./js/on_break.js"></script>
+	
 </head>
 <body>
 
@@ -64,6 +63,10 @@
   
   <!-- End Page Container -->
 </div>
+
+<%@ include file="./common/footer.jsp" %>
+<script src="./js/add_shift_note.js"></script>
+<script src="./js/on_break.js"></script>
 
 </body>
 </html>
