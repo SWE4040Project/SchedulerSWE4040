@@ -1,20 +1,16 @@
-Bookmarks Example
+Clock-in Web and Mobile application
 ===============================================================================
 
 Description 
 ===============================================================================
-- This is a simple implementation of a bookmarking web service
-- The predefined bookmarks can be listed and updated
-- A list of predefined bookmarks is returned as an Atom feed on this URI:
-     http://localhost:8080/Bookmarks/rest/bookmarks
-- A specific bookmark is returned as from this URI:
-     http://localhost:8080/Bookmarks/rest/bookmarks/{id}
-
-- Wink features used in this example:
-   LinkBuilders, ServiceDocument, SyndFeed, SyndEntry
+- This is the implementation a simple clock-in system to track employee time
+- The employee can: clock-in, clock-out, and take a break 
+- The manager can: view and modify their employee's clock-in times
 
 Build
 ===============================================================================
-- see build instructions in examples/readme.txt file
+- git clone project into IntelliJ environment
+- download Oracle 11.x Express - run .sql file
+- run on Tomcat server 6.x
 
 --- readme.txt EOF ---
