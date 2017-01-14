@@ -20,9 +20,18 @@ public class Employee {
         this.name = name;
     }
     
-    public Employee(int id, String name, String company_employee_id,int company_id,boolean manager,boolean super_admin){
+    public Employee(int id, 
+    		String name, 
+    		String company_employee_id,
+    		int company_id, 
+    		boolean manager,
+    		boolean super_admin){
         this.id = id;
         this.name = name;
+        this.company_employee_id = company_employee_id;
+        this.company_id = company_id;
+        this.manager = manager;
+        this.super_admin = super_admin;
     }
     
     public int getId() {

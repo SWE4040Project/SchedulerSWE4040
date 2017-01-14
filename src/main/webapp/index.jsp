@@ -1,88 +1,34 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-	<title>Clock in Screen</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="./css/clock_css.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	<script src="./js/clockin.js"></script>
-</head>
-<body>
+<%
+String previousScreen = null;
 
-<!-- Page Container -->
-<div class="page-container">
+Cookie[] cookies = request.getCookies();
+if(cookies !=null){
+    for(Cookie cookie : cookies){
+        if(cookie.getName().equals("previousScreen")){
+        	previousScreen = cookie.getValue();
+        }
+        //System.out.println("cookies: " + cookie.getName());
+    }
+}
 
-  <!-- The Grid -->
-  <div class="middle-column">
-    <!-- Three rows -->
-    <div class="one-quarter-height">
-      <div class="center">
-        <img class="format-image" src="images/mario_face.png" alt="Employee Profile">
-        <div class="format-profile-name">
-          Super Mario
-        </div>
-      </div>
-    </div>
-    <div class="one-half-height">
-      <div class="display-row">
-        <div class="one-half-width">
-          <div class="center">
-            <div class="previous-shift">
-              <div class="shift-row">
-                <div class="shift-date">
-                  Friday Oct. 28th
-                </div>
-                <div class="shift-hours">
-                  10:00 pm - 10:00 pm
-                </div>
-              </div>
-            </div>
-            <div class="active-shift">
-              <div class="shift-row">
-                <div class="shift-date">
-                  Saturday Oct. 29th
-                </div>
-                <div class="shift-hours">
-                  3:00 pm - 10:00 pm
-                </div>
-              </div>
-            </div>
-            <div class="future-shift">
-              <div class="shift-row">
-                <div class="shift-date">
-                  Sunday Oct. 30th
-                </div>
-                <div class="shift-hours">
-                  3:00 pm - 3:00 pm
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="one-half-width">
-          <div class="center">
-            <div class="position-button">
-              <button type="button" id="button_clockin">Clock in </br> <%= new java.util.Date().toString() %></button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="one-quarter-height">
-      <div class="center">
-        Other information
-      </div>
-    </div>
+System.out.println("previousScreen = " + previousScreen);
 
-    
-          
-  <!-- End Grid -->
-  </div>
-  
-  <!-- End Page Container -->
-</div>
-
-</body>
-</html>
+//redirect to proper screen
+if(previousScreen == null){
+	response.sendRedirect("login.jsp");
+}else if(previousScreen.equals("login")){
+	response.sendRedirect("clock_in.jsp");
+}else if(previousScreen.equals("clock_in")){
+	response.sendRedirect("in_shift.jsp");
+}else if(previousScreen.equals("in_shift")){
+	//will be null on clockout
+	response.sendRedirect("on_break.jsp");
+}else if(previousScreen.equals("on_break")){
+	response.sendRedirect("in_shift.jsp");
+}else{
+	//default
+	response.sendRedirect("login.jsp");
+}
+%>
