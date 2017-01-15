@@ -2,7 +2,7 @@
    SCRIPTS 
          -->
 <!-- jQuery -->
-<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
 
 <!-- Scheduler Custom Javascript -->
 <script src="./js/global_web.js"></script>

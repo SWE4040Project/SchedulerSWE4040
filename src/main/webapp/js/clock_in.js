@@ -9,6 +9,8 @@ $(document).ready(function() {
 	$("#button_clockin").click(function(){
     	clockin();
     });  
+	
+	$('[data-toggle="tooltip"]').tooltip(); 
 });
 
 function clockin(){

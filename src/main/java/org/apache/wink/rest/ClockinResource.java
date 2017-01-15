@@ -281,6 +281,7 @@ public class ClockinResource {
     	Employee emp = auth.login(params.getUsername(), params.getPassword());
     	if(emp == null){
     		status = Response.Status.FORBIDDEN;
+    		return Response.status(status).header("Content-Type", "application/json").build();
     	}
     	
     	//create jwt   

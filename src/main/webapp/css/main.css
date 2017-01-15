@@ -1,5 +1,5 @@
 .container { 
-  background: url(http://fullpintdev.com/wp-content/uploads/2015/06/blurbg.jpg) no-repeat center center fixed; 
+  background: url(../images/business_office_background.jpg) no-repeat center center fixed; 
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -10,4 +10,12 @@
 
 .row.vertical-offset-100 {
     margin-top: 100px;
+}
+
+.centered {
+	text-align: center;
+}
+
+#check-icon {
+	background-color: #00aa9a;
 }

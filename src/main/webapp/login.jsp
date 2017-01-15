@@ -7,7 +7,6 @@
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 <body>
-
 <div class="container">
   <div class="row vertical-offset-100">
 	<div class="col-md-4 col-md-offset-4">

@@ -1,23 +1,7 @@
 $(document).ready(function() {
 	
-	//clear cookies if exist
-	if(Cookies.get(SCHEDULER_APP.xsrfTokenCookieName)){
-		//IMPORTANT! when deleting a cookie, you must pass the exact same path 
-		// and domain attributes that was used to set the cookie
-		Cookies.remove(SCHEDULER_APP.xsrfTokenCookieName, { path: '/Scheduler' });
-		console.log("Cookie: removing " + SCHEDULER_APP.xsrfTokenCookieName);
-	}
-	if(Cookies.get(SCHEDULER_APP.previousScreenCookieName)){
-		//IMPORTANT! when deleting a cookie, you must pass the exact same path 
-		// and domain attributes that was used to set the cookie
-		Cookies.remove(SCHEDULER_APP.previousScreenCookieName);
-		console.log("Cookie: removing " + SCHEDULER_APP.previousScreenCookieName);
-	}
-	
-	var test = Cookies.get(SCHEDULER_APP.xsrfTokenCookieName)
-	console.log("Cookie: xsrfTokenCookieName exists? " + test);
-	var test2 = Cookies.get(SCHEDULER_APP.previousScreenCookieName)
-	console.log("Cookie: previousScreenCookieName exists? " + test2);
+	globalweb_logout();
+	console.log("Logged out. Provide username and password to login.");
 	
     // process the form
     $('form').submit(function(event) {
@@ -60,11 +44,11 @@ function login(){
         Cookies.set(SCHEDULER_APP.previousScreenCookieName,"login");
         
     	//clocked in page - replaces current page in back stack
-        window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
-    	//window.location.replace(SCHEDULER_APP.base_url + '/clock_in.jsp');
+    	window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
     };
 	var err = function(err) {
-        alert("Error: " + err.responseText);
+		globalweb_displayErrorModal("Login Unsuccessful", 
+				"Sorry, the username and password you entered do not match. Please try again.");
     };
     
     req.then( success, err );

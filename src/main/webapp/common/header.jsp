@@ -18,3 +18,5 @@
 <link href="https://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
 
 <link rel="stylesheet" type="text/css" href="./css/clock_css.css">
+
+<%@include file="modal.jsp" %>
