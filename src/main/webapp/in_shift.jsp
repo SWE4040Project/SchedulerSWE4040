@@ -3,9 +3,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-	<%@include file="header_includes.jsp" %>
-	<script src="./js/add_shift_note.js"></script>
-	<script src="./js/in_shift.js"></script>
+	<%@include file="./common/header.jsp" %>
+	
 </head>
 <body>
 
@@ -65,6 +64,10 @@
   
   <!-- End Page Container -->
 </div>
+
+<%@ include file="./common/footer.jsp" %>
+<script src="./js/add_shift_note.js"></script>
+<script src="./js/in_shift.js"></script>
 
 </body>
 </html>

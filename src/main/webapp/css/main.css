@@ -1,27 +1,21 @@
-#title_header{
-    height: 40px;
-    width: 100%;
-    border-bottom: 3px solid #01c120;
-    background-color: #00d00f;
+.container { 
+  background: url(../images/business_office_background.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  width: 100%;
+  height: 100%;
 }
 
-#content_container{
-    width: 100%;
-    height: 800px;
-    background-color: #9ACD32;
-    padding-top: 100px;
+.row.vertical-offset-100 {
+    margin-top: 100px;
 }
 
-.login_field{
-    width: 33%;
-    margin: auto;
-    padding: 10px 10px 10px 10px;
-    text-align: center;
+.centered {
+	text-align: center;
 }
 
-
-
-#footer{
-    background-color: #242424;
-    height: 80px;
+#check-icon {
+	background-color: #00aa9a;
 }

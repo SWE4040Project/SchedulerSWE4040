@@ -3,9 +3,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-	<%@include file="header_includes.jsp" %>
-	<script src="./js/add_shift_note.js"></script>
-	<script src="./js/on_break.js"></script>
+	<%@include file="./common/header.jsp" %>
+	
 </head>
 <body>
 
@@ -57,13 +56,15 @@
       </div>
     </div>
 
-    
-          
   <!-- End Grid -->
   </div>
   
   <!-- End Page Container -->
 </div>
+
+<%@ include file="./common/footer.jsp" %>
+<script src="./js/add_shift_note.js"></script>
+<script src="./js/on_break.js"></script>
 
 </body>
 </html>
