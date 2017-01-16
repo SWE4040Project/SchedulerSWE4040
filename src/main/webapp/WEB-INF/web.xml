@@ -46,6 +46,10 @@
 	    <filter-name>SessionCheckFilter</filter-name>
 	    <url-pattern>/on_break.jsp</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
+	<filter-mapping>
+		<filter-name>SessionCheckFilter</filter-name>
+		<url-pattern>/csv_upload.jsp</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
 	
 	<servlet>
 		<servlet-name>restSdkService</servlet-name>

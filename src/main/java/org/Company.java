@@ -30,6 +30,27 @@ public class Company {
         return id;
     }
 
+    public Company[] getCompaniesByEmployee(int employee_ID){
+        Connection con = null;
+        try{
+            DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+            con = dbpool.getConnection();
+        }catch(Exception e){}
+
+        OraclePreparedStatement stmt = null;
+        try {
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "select * FROM companies");
+            ResultSet i = stmt.executeQuery();
+
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            try{stmt.close();}catch(Exception ignore){}
+        }
+        return null;
+    }
 
     private void saveNewCompany(String name){
         Connection con = null;
@@ -55,6 +76,36 @@ public class Company {
                 con.close();
             } catch (Exception e){
             }
+        }
+    }
+
+    public static Company getCompanyById(int id){
+        OraclePreparedStatement stmt = null;
+        Connection con = null;
+        Company comp = null;
+        try{
+            DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+            con = dbpool.getConnection();
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "select * FROM companies WHERE ID = ?");
+            stmt.setInt(1, id);
+            ResultSet i = stmt.executeQuery();
+
+            if(i.next()){
+                int iter = 1;
+
+                comp = new Company(
+                        Integer.parseInt(i.getString(iter++)), 	//id
+                        i.getString(iter++)//name
+                );
+
+                System.out.println("db call: company ID:" + id);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            try{stmt.close();}catch(Exception ignore){}
+            return comp;
         }
     }
 }

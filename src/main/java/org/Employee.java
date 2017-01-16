@@ -1,4 +1,11 @@
 package org;
+
+import oracle.jdbc.OraclePreparedStatement;
+import java.sql.Connection;
+
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+
 /**
  * Created by Josh on 2016-11-06.
  */
@@ -10,7 +17,7 @@ public class Employee {
     private boolean manager;
     private boolean super_admin;
     private int current_worked_shift_id;
-    private Clock_State emp_clock_state;
+    private int emp_clock_state;
     public enum Clock_State {
     	NOT_CLOCKED_IN, CLOCKED_IN, BREAK, SHIFT_COMPLETE    	
     };
@@ -25,13 +32,15 @@ public class Employee {
     		String company_employee_id,
     		int company_id, 
     		boolean manager,
-    		boolean super_admin){
+    		boolean super_admin,
+			int emp_clock_state){
         this.id = id;
         this.name = name;
         this.company_employee_id = company_employee_id;
         this.company_id = company_id;
         this.manager = manager;
         this.super_admin = super_admin;
+		this.emp_clock_state = emp_clock_state;
     }
     
     public int getId() {
@@ -82,11 +91,11 @@ public class Employee {
 		this.super_admin = super_admin;
 	}
 
-	public Clock_State getEmployeeClockState() {
+	public int getEmployeeClockState() {
 		return emp_clock_state;
 	}
 
-	public void setEmployeeClockState(Clock_State emp_clock_state) {
+	public void setEmployeeClockState(int emp_clock_state) {
 		this.emp_clock_state = emp_clock_state;
 	}
 
@@ -96,5 +105,101 @@ public class Employee {
 
 	public void setCurrent_worked_shift_id(int current_worked_shift_id) {
 		this.current_worked_shift_id = current_worked_shift_id;
+	}
+
+	public void setPassword(String salt, String pass){
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement("UPDATE EMPLOYEES SET web_password = ?,salt = ? WHERE ID = ?");
+
+			stmt.setString(1, pass);
+			stmt.setString(2, salt);
+			stmt.setInt(3,this.id);
+
+			stmt.execute();
+
+
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();
+			}catch(Exception ignore){}
+		}
+	}
+
+	public static Employee getEmployeeById(int id){
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		Employee emp = null;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement(
+					"select * FROM employees WHERE ID = ?");
+			stmt.setInt(1, id);
+			ResultSet i = stmt.executeQuery();
+
+			if(i.next()){
+				int iter = 1;
+
+				emp = new Employee(
+						Integer.parseInt(i.getString(iter++)), 	//id
+						i.getString(iter++),					//name
+						i.getString(iter++),					//company_employee_id
+						Integer.parseInt(i.getString(iter++)),	//company ID
+						(Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false,	//manager
+						(Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false,		//super admin
+						Integer.parseInt(i.getString(iter++))
+						);
+
+				System.out.println("db call: employee ID:" + id);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();}catch(Exception ignore){}
+			return emp;
+		}
+	}
+
+	//This method is intended for inserting new employees from CSV
+	//we probably shouldn't import passwords, employees should have to create one on their first login or similar
+	public static boolean importFromCSV(String fullName, String emp_comp_id, int companay_id, boolean manager, int state, String web_password){
+
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		boolean success = false;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement(
+					"INSERT  INTO EMPLOYEES (name, companies_employee_id, companies_id, manager, super_admin, state, web_password) VALUES (?,?,?,?,?,?,?)");
+
+			if(state<0 || state>2){state=0;}
+
+			stmt.setString(1, fullName);
+			stmt.setString(2, emp_comp_id);
+			stmt.setInt(3,companay_id);
+			stmt.setBoolean(4, manager);
+			stmt.setBoolean(5, false);
+			stmt.setInt(6,state);
+			stmt.setString(7,web_password);
+
+			int i = stmt.executeUpdate();
+
+			success = true;
+
+
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();
+			}catch(Exception ignore){}
+			return success;
+		}
+
 	}
 }

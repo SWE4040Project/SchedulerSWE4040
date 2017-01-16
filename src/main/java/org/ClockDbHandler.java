@@ -61,18 +61,18 @@ public class ClockDbHandler {
             Employee emp = new Employee(employee_id, null);
             
             if( !i.next() ){
-            	emp.setEmployeeClockState(Clock_State.NOT_CLOCKED_IN);
+            	emp.setEmployeeClockState(0);
             }else {
             	//parse result
             	int state = i.getInt(1);
             	System.out.println("State: " + state);
             	switch(state){
             	//shift has been worked. Do not allow another clockin
-            	case 0: emp.setEmployeeClockState(Clock_State.SHIFT_COMPLETE);
+            	case 0: emp.setEmployeeClockState(0);
             	break;
-            	case 1: emp.setEmployeeClockState(Clock_State.CLOCKED_IN);
+            	case 1: emp.setEmployeeClockState(1);
             	break;
-            	case 2: emp.setEmployeeClockState(Clock_State.BREAK);
+            	case 2: emp.setEmployeeClockState(2);
             	break;
             	default: return null;
             	}
@@ -151,11 +151,11 @@ public class ClockDbHandler {
     	OraclePreparedStatement stmt = null;
     	try {
     		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
-    		Clock_State state = emp.getEmployeeClockState();
-        	if(state != Clock_State.CLOCKED_IN){
+    		int state = emp.getEmployeeClockState();
+        	if(state != 1){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
         	}
-        	System.out.println("Log: Clock_State =" + state.name());
+        	System.out.println("Log: Clock_State =" + state);
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"INSERT INTO breaks(start_time, worked_shift_ID)"
@@ -169,7 +169,7 @@ public class ClockDbHandler {
         	if( !updateEmployeeState(employee_id, Clock_State.BREAK)){
         		return "Error updating employee state => clock_state "+state+",employeeId "+employee_id+" and shiftId "+shift_id;
         	}
-        	System.out.println("Log: Clock_State =" + state.name());
+        	System.out.println("Log: Clock_State =" + state);
             return ""; //success
             	
         }catch(Exception e){
@@ -183,11 +183,11 @@ public class ClockDbHandler {
     	OraclePreparedStatement stmt = null;
     	try {
     		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
-    		Clock_State state = emp.getEmployeeClockState();
-        	if(state != Clock_State.BREAK){
+    		int state = emp.getEmployeeClockState();
+        	if(state != 2){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
         	}
-        	System.out.println("Log: Clock_State =" + state.name());
+        	System.out.println("Log: Clock_State =" + state);
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"update breaks set end_time = ? "
@@ -201,7 +201,7 @@ public class ClockDbHandler {
         	if( !updateEmployeeState(employee_id, Clock_State.CLOCKED_IN)){
         		return "Error updating employee state => clock_state "+state+",employeeId "+employee_id+" and shiftId "+shift_id;
         	}
-        	System.out.println("Log: Clock_State =" + state.name());
+        	System.out.println("Log: Clock_State =" + state);
             return ""; //success
             	
         }catch(Exception e){
@@ -251,11 +251,11 @@ public class ClockDbHandler {
     	OraclePreparedStatement stmt = null;
     	try {
     		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
-    		Clock_State state = emp.getEmployeeClockState();
-        	if(state != Clock_State.CLOCKED_IN){
+    		int state = emp.getEmployeeClockState();
+        	if(state != 1){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
         	}
-        	System.out.println("Log: Clock_State =" + state.name());
+        	System.out.println("Log: Clock_State =" + state);
         	
         	//truncate if worked_note is longer than 256
         	if(worked_note.length()>256){
@@ -273,7 +273,7 @@ public class ClockDbHandler {
             if (i <= 0){
             	return "Update of breaks failed => employeeId "+employee_id+" and shiftId "+shift_id;
             }
-        	System.out.println("Log: Clock_State =" + state.name());
+        	System.out.println("Log: Clock_State =" + state);
             return ""; //success
             	
         }catch(Exception e){

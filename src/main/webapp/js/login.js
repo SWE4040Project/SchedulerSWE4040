@@ -32,7 +32,8 @@ $(document).ready(function() {
 function login(){
 	
 	var url = SCHEDULER_APP.base_url + '/rest/login';
-	
+	// var url = '/rest/login';
+
 	// get the form data
     // there are many ways to get this data using jQuery (you can use the class or id also)
     var params = {

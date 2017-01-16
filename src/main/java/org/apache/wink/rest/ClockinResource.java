@@ -32,14 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.AuthenticateDbHandler;
-import org.ClockDbHandler;
-import org.ClockinParameters;
-import org.DatabaseConnectionPool;
-import org.Employee;
-import org.JsonVar;
-import org.LoginParameters;
-import org.WebTokens;
+import org.*;
 import org.Employee.Clock_State;
 
 import com.google.gson.Gson;
@@ -62,8 +55,26 @@ public class ClockinResource {
 	private static final String PATH_CONNECTIONS	= "database/connections";
 	private static final String PATH_DATABASE 		= "database";
 	private static final String PATH_TEST_AUTH      = "clockin/testauth";
-	 
+	private static final String CSV_PATH      		= "csv_upload";
+
 	Gson gson = new Gson();
+
+	@Path(CSV_PATH)
+	@GET
+	//@Produces(MediaType.APPLICATION_JSON)
+	//@Produces(MediaType.APPLICATION_JSON)
+	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj){
+		Status status = Response.Status.OK;
+
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(jsonWebToken);
+
+		//auth.setNewPassword("password", logged_in_employee);
+
+		//CSVHandler.importEmployees(logged_in_employee);
+
+		return Response.status(status).build();
+	}
 
     @Path(PATH_CLOCKIN)
     @POST
