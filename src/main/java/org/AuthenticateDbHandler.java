@@ -59,10 +59,13 @@ public class AuthenticateDbHandler {
             		+ "COMPANIES_EMPLOYEE_ID,"
             		+ "COMPANIES_ID,"
             		+ "MANAGER,"
-            		+ "SUPER_ADMIN "
-            		+ "from employees where name = ? and web_password = ? ");
+            		+ "SUPER_ADMIN, "
+					+ "STATE, "
+					+ "web_password, "
+					+ "salt "
+            		+ "from employees where companies_employee_id = ?");
+
             stmt.setString(1, username);
-            stmt.setString(2, password);
             ResultSet i = stmt.executeQuery();
             
             if(i.next()){
@@ -74,9 +77,12 @@ public class AuthenticateDbHandler {
 	        	int comp_id = Integer.parseInt(i.getString(iter++));
 	        	boolean mang = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
 	        	boolean super_ad = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
-	        	
+				int state = Integer.parseInt(i.getString(iter++));
+				byte[] hashed_password = i.getBytes(iter++);
+				byte[] salt = i.getBytes(iter++);
+
 	        	System.out.println("db call: " + name);
-	        	
+
 	        	Employee emp = 
 	        			new Employee(
 				        			id, 
@@ -84,8 +90,13 @@ public class AuthenticateDbHandler {
 				            		comp_emp_id, 
 				            		comp_id, 
 				            		mang,
-				            		super_ad);
-	        	
+				            		super_ad,
+									state);
+
+				if(!emp.validPassword(hashed_password, salt, password)){
+					return  null;
+				}
+
 	        	return emp;
             }
         }catch(Exception e){
@@ -185,63 +196,82 @@ public class AuthenticateDbHandler {
     	return null;
 	}
 
-	public int getInt(String key, String compactJws) {
+	public int getInt(String key, WebTokens compactJws) {
+		String jsonToken = compactJws.getJsonWebToken();
     	String encodedKey = getSecretKey();
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
     	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
-    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
+    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(jsonToken);
 
-	    System.out.println("Log: trusted:  " + compactJws);
+	    System.out.println("Log: trusted:  " + jsonToken);
 	    //This line will throw an exception if it is not a signed JWS (as expected)
 	    Claims claims = Jwts.parser()         
 	       .setSigningKey(signingKey)
-	       .parseClaimsJws(compactJws).getBody();
+	       .parseClaimsJws(jsonToken).getBody();
+
+		String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+		if( !compactJws.getXsrfToken().equals(xsrfToken) ){
+			throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+		}
 	    
 	    int result = -1;
 	    try{
 	    	result = (Integer) claims.get(key);
-	    }catch(Exception e){
+	    }catch (SignatureException se) {
+    	    //don't trust the JWT!
+    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage());
+    	} catch (ExpiredJwtException eje){
+    		//don't trust the JWT!
+    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+    	} catch(Exception e){
 	    	e.printStackTrace();
 	    }
 	   
 	    return result;
 	}
 
-	public boolean isSuperAdmin(WebTokens webTokens) {
-		try{
-    		String compactJws = webTokens.getJsonWebToken();
-	    	String encodedKey = getSecretKey();
-	        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
-	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
-	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
-	
-		    System.out.println("Log: trusted:  " + compactJws);
-		    //This line will throw an exception if it is not a signed JWS (as expected)
-		    Claims claims = Jwts.parser()         
-		       .setSigningKey(signingKey)
-		       .parseClaimsJws(compactJws).getBody();
-		   
-		    String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
-		    if( !webTokens.getXsrfToken().equals(xsrfToken) ){
-		    	throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
-		    }
-		    
-		    //CHECK IF SUPER ADMIN HERE
-		    boolean isSuperAdmin = (Boolean) claims.get(JsonVar.SUPER_ADMIN);
-		    if( !isSuperAdmin ){
-		    	throw new SignatureException("Not super admin");
-		    }
-		    
-		    return true;
-    	} catch (SignatureException se) {
-    	    //don't trust the JWT!
-    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage()); 
-    	} catch (ExpiredJwtException eje){
-    		//don't trust the JWT!
-    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
-    	} catch (Exception e){
-    		e.printStackTrace();
-    	}
-    	return false;
+//	public boolean isSuperAdmin(WebTokens webTokens) {
+//		try{
+//    		String compactJws = webTokens.getJsonWebToken();
+//	    	String encodedKey = getSecretKey();
+//	        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
+//	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
+//	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
+//
+//		    System.out.println("Log: trusted:  " + compactJws);
+//		    //This line will throw an exception if it is not a signed JWS (as expected)
+//		    Claims claims = Jwts.parser()
+//		       .setSigningKey(signingKey)
+//		       .parseClaimsJws(compactJws).getBody();
+//
+//		    String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+//		    if( !webTokens.getXsrfToken().equals(xsrfToken) ){
+//		    	throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+//		    }
+//
+//		    //CHECK IF SUPER ADMIN HERE
+//		    boolean isSuperAdmin = (Boolean) claims.get(JsonVar.SUPER_ADMIN);
+//		    if( !isSuperAdmin ){
+//		    	throw new SignatureException("Not super admin");
+//		    }
+//
+//		    return true;
+//    	} catch (SignatureException se) {
+//    	    //don't trust the JWT!
+//    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage());
+//    	} catch (ExpiredJwtException eje){
+//    		//don't trust the JWT!
+//    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+//    	} catch (Exception e){
+//    		e.printStackTrace();
+//    	}
+//    	return false;
+//	}
+
+	public Employee employeeFromJWT(WebTokens tokens){
+		int emp_id = getInt(JsonVar.EMPLOYEE_ID, tokens);
+		Employee emp = Employee.getEmployeeById(emp_id);
+		return emp;
+
 	}
 }

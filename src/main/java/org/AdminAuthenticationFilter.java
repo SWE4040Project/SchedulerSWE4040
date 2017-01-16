@@ -25,8 +25,7 @@ public class AdminAuthenticationFilter implements Filter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain fc) throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;  
-    
-    
+
     System.out.println("doFilter here.");
     
     //get authorization token
@@ -43,6 +42,9 @@ public class AdminAuthenticationFilter implements Filter {
         }
       }
     }
+
+    WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
+    Employee emp = new AuthenticateDbHandler().employeeFromJWT(webTokens);
     
     if(jsonWebToken == null || xsrfToken == null){
     	//error case here
@@ -50,8 +52,8 @@ public class AdminAuthenticationFilter implements Filter {
     }else{
     
 	    AuthenticateDbHandler auth = new AuthenticateDbHandler();
-		WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-		if( !auth.isSuperAdmin(webTokens)){
+
+		if( !emp.isSuper_admin()){
 			System.out.println("Need SUPER ADMIN privileges to access.");
 			request.getRequestDispatcher("/login.jsp").forward(request, response);
 			return;
