@@ -52,6 +52,7 @@ import com.google.gson.JsonObject;
 import oracle.jdbc.OraclePreparedStatement;
 
 import java.sql.*;
+import java.util.Iterator;
 
 @Path("/")
 public class ClockinResource {
@@ -94,7 +95,7 @@ public class ClockinResource {
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens.getJsonWebToken());
+    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
     	if(empId < 0){
     		status = Response.Status.BAD_REQUEST;
     	}
@@ -132,7 +133,7 @@ public class ClockinResource {
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens.getJsonWebToken());
+    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
     	if(empId < 0){
     		status = Response.Status.BAD_REQUEST;
     	}
@@ -170,7 +171,7 @@ public class ClockinResource {
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens.getJsonWebToken());
+    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
     	if(empId < 0){
     		status = Response.Status.BAD_REQUEST;
     	}
@@ -208,7 +209,7 @@ public class ClockinResource {
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens.getJsonWebToken());
+    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
     	if(empId < 0){
     		status = Response.Status.BAD_REQUEST;
     	}
@@ -246,7 +247,7 @@ public class ClockinResource {
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens.getJsonWebToken());
+    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
     	if(empId < 0){
     		status = Response.Status.BAD_REQUEST;
     	}
@@ -684,10 +685,14 @@ public class ClockinResource {
 	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj){
 		Status status = Response.Status.OK;
 
-		AuthenticateDbHandler auth = new AuthenticateDbHandler();
-		Employee logged_in_employee = auth.employeeFromJWT(jsonWebToken);
+		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
 
-		//auth.setNewPassword("password", logged_in_employee);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+
+//		logged_in_employee.setNewPassword("password");
+		Employee foo = new Employee(1, "Josh Northrup");
+		foo.setNewPassword("password");
 
 		//CSVHandler.importEmployees(logged_in_employee);
 

@@ -4,13 +4,9 @@ import java.security.Key;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
@@ -82,14 +78,10 @@ public class AuthenticateDbHandler {
 	        	boolean mang = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
 	        	boolean super_ad = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
 				int state = Integer.parseInt(i.getString(iter++));
-				String hashed_password = i.getString(iter++);
-				String salt = i.getString(iter++);
+				byte[] hashed_password = i.getBytes(iter++);
+				byte[] salt = i.getBytes(iter++);
 
 	        	System.out.println("db call: " + name);
-
-				if(!validPassword(hashed_password, salt, password)){
-					return  null;
-				}
 
 	        	Employee emp = 
 	        			new Employee(
@@ -100,7 +92,11 @@ public class AuthenticateDbHandler {
 				            		mang,
 				            		super_ad,
 									state);
-	        	
+
+				if(!emp.validPassword(hashed_password, salt, password)){
+					return  null;
+				}
+
 	        	return emp;
             }
         }catch(Exception e){
@@ -200,22 +196,34 @@ public class AuthenticateDbHandler {
     	return null;
 	}
 
-	public int getInt(String key, String compactJws) {
+	public int getInt(String key, WebTokens compactJws) {
+		String jsonToken = compactJws.getJsonWebToken();
     	String encodedKey = getSecretKey();
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
     	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
-    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
+    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(jsonToken);
 
-	    System.out.println("Log: trusted:  " + compactJws);
+	    System.out.println("Log: trusted:  " + jsonToken);
 	    //This line will throw an exception if it is not a signed JWS (as expected)
 	    Claims claims = Jwts.parser()         
 	       .setSigningKey(signingKey)
-	       .parseClaimsJws(compactJws).getBody();
+	       .parseClaimsJws(jsonToken).getBody();
+
+		String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+		if( !compactJws.getXsrfToken().equals(xsrfToken) ){
+			throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+		}
 	    
 	    int result = -1;
 	    try{
 	    	result = (Integer) claims.get(key);
-	    }catch(Exception e){
+	    }catch (SignatureException se) {
+    	    //don't trust the JWT!
+    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage());
+    	} catch (ExpiredJwtException eje){
+    		//don't trust the JWT!
+    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+    	} catch(Exception e){
 	    	e.printStackTrace();
 	    }
 	   
@@ -260,52 +268,8 @@ public class AuthenticateDbHandler {
 //    	return false;
 //	}
 
-	private byte[] newSalt(){
-		Random r = new SecureRandom();
-		byte[] salt = new byte[32];
-		r.nextBytes(salt);
-		return salt;
-	}
-
-	public void setNewPassword(String password, Employee emp){
-		byte salt[] = newSalt();
-		char char_password[] = password.toCharArray();
-		byte[] hash = hashFunction(salt, char_password);
-
-		emp.setPassword(new String(salt), new String(hash));
-	}
-
-	private boolean validPassword(String hashed_password, String in_salt, String plain_password){
-
-		byte salt[] = in_salt.getBytes();
-		char char_password[] = plain_password.toCharArray();
-		byte[] hash = hashFunction(salt, char_password);
-
-		if(hash.equals(hashed_password.getBytes())){
-			return true;
-		}else{
-			return  false;
-		}
-	}
-
-	private byte[] hashFunction(byte salt[], char[] char_password){
-		byte[] hash;
-		try{
-			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
-			PBEKeySpec keyspec = new PBEKeySpec(char_password,salt,50,512);
-			SecretKey secret_key = skf.generateSecret(keyspec);
-			hash = secret_key.getEncoded();
-			return hash;
-
-		}catch(Exception e){
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
-			return null;
-		}
-	}
-
-	public Employee employeeFromJWT(String jwt){
-		int emp_id = getInt(JsonVar.EMPLOYEE_ID, jwt);
+	public Employee employeeFromJWT(WebTokens tokens){
+		int emp_id = getInt(JsonVar.EMPLOYEE_ID, tokens);
 		Employee emp = Employee.getEmployeeById(emp_id);
 		return emp;
 

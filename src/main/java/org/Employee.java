@@ -1,10 +1,18 @@
 package org;
 
 import oracle.jdbc.OraclePreparedStatement;
+import oracle.sql.RAW;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.security.SecureRandom;
 import java.sql.Connection;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Created by Josh on 2016-11-06.
@@ -107,7 +115,7 @@ public class Employee {
 		this.current_worked_shift_id = current_worked_shift_id;
 	}
 
-	public void setPassword(String salt, String pass){
+	private void setPassword(byte[] salt, byte[] pass){
 		OraclePreparedStatement stmt = null;
 		Connection con = null;
 		try{
@@ -115,8 +123,8 @@ public class Employee {
 			con = dbpool.getConnection();
 			stmt = (OraclePreparedStatement) con.prepareStatement("UPDATE EMPLOYEES SET web_password = ?,salt = ? WHERE ID = ?");
 
-			stmt.setString(1, pass);
-			stmt.setString(2, salt);
+			stmt.setRAW(1, new RAW(pass));
+			stmt.setRAW(2, new RAW(salt));
 			stmt.setInt(3,this.id);
 
 			stmt.execute();
@@ -162,6 +170,52 @@ public class Employee {
 		}finally{
 			try{stmt.close();}catch(Exception ignore){}
 			return emp;
+		}
+	}
+
+	private byte[] newSalt(){
+		Random r = new SecureRandom();
+		byte[] salt = new byte[32];
+		r.nextBytes(salt);
+		return salt;
+	}
+
+	public void setNewPassword(String password){
+		byte salt[] = newSalt();
+		char char_password[] = password.toCharArray();
+		byte[] hash = hashFunction(salt, char_password);
+
+		setPassword(salt, hash);
+	}
+
+	public boolean validPassword(byte[] hashed_password, byte[] in_salt, String plain_password){
+
+		byte salt[] = in_salt;
+		char char_password[] = plain_password.toCharArray();
+		byte[] hash = hashFunction(salt, char_password);
+
+//		byte[] db_pass = hashed_password.getBytes();
+
+		if(Arrays.equals(hash, hashed_password)){
+			return true;
+		}else{
+			return  false;
+		}
+	}
+
+	private byte[] hashFunction(byte salt[], char[] char_password){
+		byte[] hash;
+		try{
+			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+			PBEKeySpec keyspec = new PBEKeySpec(char_password,salt,50,512);
+			SecretKey secret_key = skf.generateSecret(keyspec);
+			hash = secret_key.getEncoded();
+			return hash;
+
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
+			return null;
 		}
 	}
 
