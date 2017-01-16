@@ -4,9 +4,13 @@ import java.security.Key;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
@@ -59,10 +63,13 @@ public class AuthenticateDbHandler {
             		+ "COMPANIES_EMPLOYEE_ID,"
             		+ "COMPANIES_ID,"
             		+ "MANAGER,"
-            		+ "SUPER_ADMIN "
-            		+ "from employees where name = ? and web_password = ? ");
+            		+ "SUPER_ADMIN, "
+					+ "STATE, "
+					+ "web_password, "
+					+ "salt "
+            		+ "from employees where companies_employee_id = ?");
+
             stmt.setString(1, username);
-            stmt.setString(2, password);
             ResultSet i = stmt.executeQuery();
             
             if(i.next()){
@@ -74,9 +81,16 @@ public class AuthenticateDbHandler {
 	        	int comp_id = Integer.parseInt(i.getString(iter++));
 	        	boolean mang = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
 	        	boolean super_ad = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
-	        	
+				int state = Integer.parseInt(i.getString(iter++));
+				String hashed_password = i.getString(iter++);
+				String salt = i.getString(iter++);
+
 	        	System.out.println("db call: " + name);
-	        	
+
+				if(!validPassword(hashed_password, salt, password)){
+					return  null;
+				}
+
 	        	Employee emp = 
 	        			new Employee(
 				        			id, 
@@ -84,7 +98,8 @@ public class AuthenticateDbHandler {
 				            		comp_emp_id, 
 				            		comp_id, 
 				            		mang,
-				            		super_ad);
+				            		super_ad,
+									state);
 	        	
 	        	return emp;
             }
@@ -207,41 +222,92 @@ public class AuthenticateDbHandler {
 	    return result;
 	}
 
-	public boolean isSuperAdmin(WebTokens webTokens) {
+//	public boolean isSuperAdmin(WebTokens webTokens) {
+//		try{
+//    		String compactJws = webTokens.getJsonWebToken();
+//	    	String encodedKey = getSecretKey();
+//	        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
+//	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
+//	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
+//
+//		    System.out.println("Log: trusted:  " + compactJws);
+//		    //This line will throw an exception if it is not a signed JWS (as expected)
+//		    Claims claims = Jwts.parser()
+//		       .setSigningKey(signingKey)
+//		       .parseClaimsJws(compactJws).getBody();
+//
+//		    String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+//		    if( !webTokens.getXsrfToken().equals(xsrfToken) ){
+//		    	throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+//		    }
+//
+//		    //CHECK IF SUPER ADMIN HERE
+//		    boolean isSuperAdmin = (Boolean) claims.get(JsonVar.SUPER_ADMIN);
+//		    if( !isSuperAdmin ){
+//		    	throw new SignatureException("Not super admin");
+//		    }
+//
+//		    return true;
+//    	} catch (SignatureException se) {
+//    	    //don't trust the JWT!
+//    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage());
+//    	} catch (ExpiredJwtException eje){
+//    		//don't trust the JWT!
+//    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+//    	} catch (Exception e){
+//    		e.printStackTrace();
+//    	}
+//    	return false;
+//	}
+
+	private byte[] newSalt(){
+		Random r = new SecureRandom();
+		byte[] salt = new byte[32];
+		r.nextBytes(salt);
+		return salt;
+	}
+
+	public void setNewPassword(String password, Employee emp){
+		byte salt[] = newSalt();
+		char char_password[] = password.toCharArray();
+		byte[] hash = hashFunction(salt, char_password);
+
+		emp.setPassword(new String(salt), new String(hash));
+	}
+
+	private boolean validPassword(String hashed_password, String in_salt, String plain_password){
+
+		byte salt[] = in_salt.getBytes();
+		char char_password[] = plain_password.toCharArray();
+		byte[] hash = hashFunction(salt, char_password);
+
+		if(hash.equals(hashed_password.getBytes())){
+			return true;
+		}else{
+			return  false;
+		}
+	}
+
+	private byte[] hashFunction(byte salt[], char[] char_password){
+		byte[] hash;
 		try{
-    		String compactJws = webTokens.getJsonWebToken();
-	    	String encodedKey = getSecretKey();
-	        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
-	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
-	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(compactJws);
-	
-		    System.out.println("Log: trusted:  " + compactJws);
-		    //This line will throw an exception if it is not a signed JWS (as expected)
-		    Claims claims = Jwts.parser()         
-		       .setSigningKey(signingKey)
-		       .parseClaimsJws(compactJws).getBody();
-		   
-		    String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
-		    if( !webTokens.getXsrfToken().equals(xsrfToken) ){
-		    	throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
-		    }
-		    
-		    //CHECK IF SUPER ADMIN HERE
-		    boolean isSuperAdmin = (Boolean) claims.get(JsonVar.SUPER_ADMIN);
-		    if( !isSuperAdmin ){
-		    	throw new SignatureException("Not super admin");
-		    }
-		    
-		    return true;
-    	} catch (SignatureException se) {
-    	    //don't trust the JWT!
-    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage()); 
-    	} catch (ExpiredJwtException eje){
-    		//don't trust the JWT!
-    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
-    	} catch (Exception e){
-    		e.printStackTrace();
-    	}
-    	return false;
+			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+			PBEKeySpec keyspec = new PBEKeySpec(char_password,salt,50,512);
+			SecretKey secret_key = skf.generateSecret(keyspec);
+			hash = secret_key.getEncoded();
+			return hash;
+
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
+			return null;
+		}
+	}
+
+	public Employee employeeFromJWT(String jwt){
+		int emp_id = getInt(JsonVar.EMPLOYEE_ID, jwt);
+		Employee emp = Employee.getEmployeeById(emp_id);
+		return emp;
+
 	}
 }

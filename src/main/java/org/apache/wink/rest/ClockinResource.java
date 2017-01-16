@@ -52,27 +52,27 @@ import com.google.gson.JsonObject;
 import oracle.jdbc.OraclePreparedStatement;
 
 import java.sql.*;
-import java.util.Iterator;
 
 @Path("/")
 public class ClockinResource {
 	
-	private static final String PATH_CLOCKIN 			= "clockin/clockin";
-	private static final String PATH_CLOCKOUT 			= "clockin/clockout";
-	private static final String PATH_BREAKIN 			= "clockin/breakin";
-	private static final String PATH_BREAKOUT 			= "clockin/breakout";
-	private static final String PATH_ADDSHIFTNOTE 		= "clockin/addshiftnote";
-	private static final String PATH_TEST_AUTH      	= "clockin/testauth";
-	private static final String PATH_JSON          		= "json";
-	private static final String LOGIN  					= "login";
-	private static final String PATH_CONNECTIONS		= "connections/database";
-	private static final String PATH_DATABASE 			= "database";
-	private static final String PATH_DATABASE_EDIT		= "database/edit";
-	private static final String PATH_DATABASE_DELETE 	= "database/delete";
-	private static final String PATH_DATABASE_ADD 		= "database/add";
-	
+	private static final String PATH_CLOCKIN 		= "clockin/clockin";
+	private static final String PATH_CLOCKOUT 		= "clockin/clockout";
+	private static final String PATH_BREAKIN 		= "clockin/breakin";
+	private static final String PATH_BREAKOUT 		= "clockin/breakout";
+	private static final String PATH_ADDSHIFTNOTE 	= "clockin/addshiftnote";
+	private static final String PATH_TEST_AUTH      = "clockin/testauth";
+	private static final String PATH_JSON          	= "json";
+	private static final String LOGIN  				= "login";
+	private static final String PATH_CONNECTIONS	= "connections/database";
+	private static final String PATH_DATABASE 		= "database";
+	private static final String PATH_DATABASE_EDIT	= "database/edit";
+	private static final String PATH_DATABASE_DELETE= "database/delete";
+	private static final String PATH_DATABASE_ADD 	= "database/add";
+	private static final String CSV_PATH      		= "csv_upload";
 	 
 	Gson gson = new Gson();
+
 
     @Path(PATH_CLOCKIN)
     @POST
@@ -424,19 +424,19 @@ public class ClockinResource {
 		}
         return Response.status(status).entity(result).header("Content-Type", "application/json").build();
     }
-    
+
     @Path(PATH_DATABASE_EDIT)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response editData(@QueryParam("table") String table, String obj) {
-    	
+
     	Status status = Response.Status.NO_CONTENT;
     	Connection con = null;
     	String result = null;
     	OraclePreparedStatement stmt = null;
-    	try{  
-    		
+    	try{
+
     		//prevent sql injection
     		String sqlStatement = null;
     		try {
@@ -446,10 +446,10 @@ public class ClockinResource {
 			} catch (IllegalArgumentException e) {
 			    throw new Exception("Table does not exist in the database.");
 			}
-    		
-    		JSONObject jsonObject = (JSONObject) new JSONParser().parse(obj);  
+
+    		JSONObject jsonObject = (JSONObject) new JSONParser().parse(obj);
     		System.out.println("jsonObject.toJSONString() " + jsonObject.toJSONString());
-    		
+
     		//parse column names
     		JSONArray colNames = (JSONArray) jsonObject.get("columnNames");
 			Iterator<String> iter = colNames.iterator();
@@ -460,14 +460,14 @@ public class ClockinResource {
     				sqlStatement += ", ";
     			}
     		}
-    		
+
     		//connect to database via connection pool
     		DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
         	con = dbpool.getConnection();
-        	
+
         	JSONArray colData = (JSONArray) jsonObject.get("columnData");
         	sqlStatement += " where ID = '" + colData.get(0) +"'";
-        	
+
         	stmt = (OraclePreparedStatement) con.prepareStatement(sqlStatement);
         	System.out.println("sqlStatement " + sqlStatement);
 
@@ -487,7 +487,7 @@ public class ClockinResource {
     			countPlace++;
     		}
             int i = stmt.executeUpdate();
-            
+
             if (i <= 0){
             	status = Response.Status.BAD_REQUEST;
             }else{
@@ -497,12 +497,12 @@ public class ClockinResource {
 			System.out.println("Catching parse exception: " + pe.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = pe.getMessage();
-		}catch(Exception e){ 
+		}catch(Exception e){
 			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = e.getMessage();
 		}finally{
-			//step5 close the connection object  
+			//step5 close the connection object
     		try {con.close();} catch (Exception e){
     			System.out.println("Finally: " + e.getMessage());
     		}
@@ -512,19 +512,19 @@ public class ClockinResource {
     	}
         return Response.status(status).entity(result).header("Content-Type", "application/json").build();
     }
-    
+
     @Path(PATH_DATABASE_DELETE)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteData(@QueryParam("table") String table, String obj) {
-    	
+
     	Status status = Response.Status.NO_CONTENT;
     	Connection con = null;
     	String result = null;
     	OraclePreparedStatement stmt = null;
-    	try{  
-    		
+    	try{
+
     		//prevent sql injection
     		String sqlStatement = null;
     		try {
@@ -534,17 +534,17 @@ public class ClockinResource {
 			} catch (IllegalArgumentException e) {
 			    throw new Exception("Table does not exist in the database.");
 			}
-    		
-    		JSONObject jsonObject = (JSONObject) new JSONParser().parse(obj);  
+
+    		JSONObject jsonObject = (JSONObject) new JSONParser().parse(obj);
     		System.out.println("jsonObject.toJSONString() " + jsonObject.toJSONString());
-    		
-    		
+
+
     		//connect to database via connection pool
     		DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
         	con = dbpool.getConnection();
-        	
+
         	sqlStatement = "delete from " + table + " where "+ jsonObject.get("rowId") +" = ?";
-        	
+
         	stmt = (OraclePreparedStatement) con.prepareStatement(sqlStatement);
         	System.out.println("sqlStatement " + sqlStatement);
 
@@ -555,7 +555,7 @@ public class ClockinResource {
 				System.out.println("Not an integer...");
 			}
             int i = stmt.executeUpdate();
-            
+
             if (i <= 0){
             	status = Response.Status.BAD_REQUEST;
             }else{
@@ -565,12 +565,12 @@ public class ClockinResource {
 			System.out.println("Catching parse exception: " + pe.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = pe.getMessage();
-		}catch(Exception e){ 
+		}catch(Exception e){
 			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = e.getMessage();
 		}finally{
-			//step5 close the connection object  
+			//step5 close the connection object
     		try {con.close();} catch (Exception e){
     			System.out.println("Finally: " + e.getMessage());
     		}
@@ -580,19 +580,19 @@ public class ClockinResource {
     	}
         return Response.status(status).entity(result).header("Content-Type", "application/json").build();
     }
-    
+
     @Path(PATH_DATABASE_ADD)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response addData(@QueryParam("table") String table, String obj) {
-    	
+
     	Status status = Response.Status.NO_CONTENT;
     	Connection con = null;
     	String result = null;
     	OraclePreparedStatement stmt = null;
-    	try{  
-    		
+    	try{
+
     		//prevent sql injection
     		String sqlStatement = null;
     		try {
@@ -602,16 +602,16 @@ public class ClockinResource {
 			} catch (IllegalArgumentException e) {
 			    throw new Exception("Table does not exist in the database.");
 			}
-    		
-    		JSONObject jsonObject = (JSONObject) new JSONParser().parse(obj);  
+
+    		JSONObject jsonObject = (JSONObject) new JSONParser().parse(obj);
     		System.out.println("jsonObject.toJSONString() " + jsonObject.toJSONString());
-    		
+
     		//parse column names
     		JSONArray colNames = (JSONArray) jsonObject.get("columnNames");
 			Iterator<String> iter = colNames.iterator();
-			
+
 			/*
-			 	INSERT INTO worked_shifts(start_time,scheduled_shift_ID,employee_ID, location_ID) 
+			 	INSERT INTO worked_shifts(start_time,scheduled_shift_ID,employee_ID, location_ID)
 					VALUES ('20-NOV-16 15:54:30','1','1','1');
 			 */
     		sqlStatement = "INSERT INTO "+table+"(";
@@ -625,13 +625,13 @@ public class ClockinResource {
     			}
     		}
     		sqlStatement += ") VALUES ("+ paramSpace +")";
-    		
+
     		//connect to database via connection pool
     		DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
         	con = dbpool.getConnection();
-        	
+
         	JSONArray colData = (JSONArray) jsonObject.get("columnData");
-        	
+
         	stmt = (OraclePreparedStatement) con.prepareStatement(sqlStatement);
         	System.out.println("sqlStatement " + sqlStatement);
 
@@ -651,7 +651,7 @@ public class ClockinResource {
     			countPlace++;
     		}
             int i = stmt.executeUpdate();
-            
+
             if (i <= 0){
             	status = Response.Status.BAD_REQUEST;
             }else{
@@ -661,12 +661,12 @@ public class ClockinResource {
 			System.out.println("Catching parse exception: " + pe.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = pe.getMessage();
-		}catch(Exception e){ 
+		}catch(Exception e){
 			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = e.getMessage();
 		}finally{
-			//step5 close the connection object  
+			//step5 close the connection object
     		try {con.close();} catch (Exception e){
     			System.out.println("Finally: " + e.getMessage());
     		}
@@ -676,4 +676,21 @@ public class ClockinResource {
     	}
         return Response.status(status).entity(result).header("Content-Type", "application/json").build();
     }
+
+	@Path(CSV_PATH)
+	@GET
+	//@Produces(MediaType.APPLICATION_JSON)
+	//@Produces(MediaType.APPLICATION_JSON)
+	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj){
+		Status status = Response.Status.OK;
+
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(jsonWebToken);
+
+		//auth.setNewPassword("password", logged_in_employee);
+
+		//CSVHandler.importEmployees(logged_in_employee);
+
+		return Response.status(status).build();
+	}
 }
