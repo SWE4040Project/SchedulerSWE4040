@@ -115,29 +115,6 @@ public class Employee {
 		this.current_worked_shift_id = current_worked_shift_id;
 	}
 
-	private void setPassword(byte[] salt, byte[] pass){
-		OraclePreparedStatement stmt = null;
-		Connection con = null;
-		try{
-			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
-			con = dbpool.getConnection();
-			stmt = (OraclePreparedStatement) con.prepareStatement("UPDATE EMPLOYEES SET web_password = ?,salt = ? WHERE ID = ?");
-
-			stmt.setRAW(1, new RAW(pass));
-			stmt.setRAW(2, new RAW(salt));
-			stmt.setInt(3,this.id);
-
-			stmt.execute();
-
-
-		}catch(Exception e){
-			e.printStackTrace();
-		}finally{
-			try{stmt.close();
-			}catch(Exception ignore){}
-		}
-	}
-
 	public static Employee getEmployeeById(int id){
 		OraclePreparedStatement stmt = null;
 		Connection con = null;
@@ -161,7 +138,7 @@ public class Employee {
 						(Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false,	//manager
 						(Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false,		//super admin
 						Integer.parseInt(i.getString(iter++))
-						);
+				);
 
 				System.out.println("db call: employee ID:" + id);
 			}
@@ -171,13 +148,6 @@ public class Employee {
 			try{stmt.close();}catch(Exception ignore){}
 			return emp;
 		}
-	}
-
-	private byte[] newSalt(){
-		Random r = new SecureRandom();
-		byte[] salt = new byte[32];
-		r.nextBytes(salt);
-		return salt;
 	}
 
 	public void setNewPassword(String password){
@@ -200,22 +170,6 @@ public class Employee {
 			return true;
 		}else{
 			return  false;
-		}
-	}
-
-	private byte[] hashFunction(byte salt[], char[] char_password){
-		byte[] hash;
-		try{
-			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
-			PBEKeySpec keyspec = new PBEKeySpec(char_password,salt,50,512);
-			SecretKey secret_key = skf.generateSecret(keyspec);
-			hash = secret_key.getEncoded();
-			return hash;
-
-		}catch(Exception e){
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
-			return null;
 		}
 	}
 
@@ -256,4 +210,51 @@ public class Employee {
 		}
 
 	}
+
+	private void setPassword(byte[] salt, byte[] pass){
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement("UPDATE EMPLOYEES SET web_password = ?,salt = ? WHERE ID = ?");
+
+			stmt.setRAW(1, new RAW(pass));
+			stmt.setRAW(2, new RAW(salt));
+			stmt.setInt(3,this.id);
+
+			stmt.execute();
+
+
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();
+			}catch(Exception ignore){}
+		}
+	}
+
+	private byte[] newSalt(){
+		Random r = new SecureRandom();
+		byte[] salt = new byte[32];
+		r.nextBytes(salt);
+		return salt;
+	}
+
+	private byte[] hashFunction(byte salt[], char[] char_password){
+		byte[] hash;
+		try{
+			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+			PBEKeySpec keyspec = new PBEKeySpec(char_password,salt,50,512);
+			SecretKey secret_key = skf.generateSecret(keyspec);
+			hash = secret_key.getEncoded();
+			return hash;
+
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
+			return null;
+		}
+	}
+
 }
