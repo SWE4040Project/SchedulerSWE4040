@@ -20,9 +20,10 @@ public class ClockDbHandler {
     	OraclePreparedStatement stmt = null;
     	try {
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"select emp.state from employees emp "
-            		+ "join worked_shifts wrk on emp.ID = wrk.EMPLOYEE_ID "
-            		+ "where emp.ID = ? and wrk.scheduled_shift_id = ?");
+            		"select emp.state from employees emp join scheduled_shifts shfts "
+            		+ "on emp.ID = shfts.EMPLOYEES_ID "
+            		+ "where emp.ID = ? and shfts.ID = ? "
+            		+ "and real_start_time is not null");
             stmt.setInt(1, employee_id);
             stmt.setInt(2, shift_id);
             ResultSet i = stmt.executeQuery();
@@ -51,9 +52,9 @@ public class ClockDbHandler {
     	OraclePreparedStatement stmt = null;
     	try {
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"select emp.state, wrk.ID from employees emp "
-            		+ "join worked_shifts wrk on emp.ID = wrk.EMPLOYEE_ID "
-            		+ "where emp.ID = ? and wrk.scheduled_shift_id = ?");
+            		"select emp.state, shfts.ID from employees emp "
+            		+ "join scheduled_shifts shfts on emp.ID = shfts.EMPLOYEES_ID "
+            		+ "where emp.ID = ? and shfts.ID = ?");
             stmt.setInt(1, employee_id);
             stmt.setInt(2, shift_id);
             ResultSet i = stmt.executeQuery();
@@ -67,7 +68,6 @@ public class ClockDbHandler {
             	int state = i.getInt(1);
             	System.out.println("State: " + state);
             	switch(state){
-            	//shift has been worked. Do not allow another clockin
             	case 0: emp.setEmployeeClockState(0);
             	break;
             	case 1: emp.setEmployeeClockState(1);
@@ -125,14 +125,14 @@ public class ClockDbHandler {
         	System.out.println("Log: Clock_State =" + state.name());
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"INSERT INTO worked_shifts(start_time,scheduled_shift_ID,employee_ID, location_ID) VALUES (?,?,?,?)");
+            		"update scheduled_shifts set real_start_time = ? where ID = ? and employees_ID = ? and location_ID = ? ");
             stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
             stmt.setInt(2, shift_id);
             stmt.setInt(3, employee_id);
             stmt.setInt(4, location_id);
             int i = stmt.executeUpdate();
             if (i <= 0){
-            	return "Update of worked_shifts failed => employeeId "+employee_id+" and shiftId "+shift_id;
+            	return "Update of scheduled_shifts failed => employeeId "+employee_id+" and shiftId "+shift_id;
             }
         	if( !updateEmployeeState(employee_id, Clock_State.CLOCKED_IN)){
         		return "Error updating employee state => employeeId "+employee_id+" and shiftId "+shift_id;
@@ -141,6 +141,7 @@ public class ClockDbHandler {
             return ""; //success
             	
         }catch(Exception e){
+        	System.out.println(e.getMessage());
             return e.getMessage();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
@@ -158,7 +159,7 @@ public class ClockDbHandler {
         	System.out.println("Log: Clock_State =" + state);
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"INSERT INTO breaks(start_time, worked_shift_ID)"
+            		"INSERT INTO breaks(start_time, scheduled_shift_ID)"
             		+ "VALUES (?,?)");
             stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
             stmt.setInt(2, emp.getCurrent_worked_shift_id());
@@ -191,7 +192,7 @@ public class ClockDbHandler {
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"update breaks set end_time = ? "
-            		+ "where worked_shift_id = ?");
+            		+ "where scheduled_shift_id = ?");
             stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
             stmt.setInt(2, emp.getCurrent_worked_shift_id());
             int i = stmt.executeUpdate();
@@ -222,9 +223,9 @@ public class ClockDbHandler {
         	System.out.println("Log: Clock_State =" + state.name());
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"update worked_shifts set end_time = ? where "
-            		+ "scheduled_shift_id = ? and "
-            		+ "employee_id = ? and "
+            		"update scheduled_shifts set real_end_time = ? where "
+            		+ "id = ? and "
+            		+ "employees_id = ? and "
             		+ "location_id = ?");
             stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
             stmt.setInt(2, shift_id);
@@ -265,7 +266,7 @@ public class ClockDbHandler {
         	System.out.println("Log: worked_note: "+ worked_note);
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"update worked_shifts set worked_notes = ? "
+            		"update scheduled_shifts set worked_notes = ? "
             		+ "where id = ?");
             stmt.setString(1, worked_note);
             stmt.setInt(2, emp.getCurrent_worked_shift_id());

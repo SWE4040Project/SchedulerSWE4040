@@ -26,7 +26,7 @@ public class AdminAuthenticationFilter implements Filter {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;  
 
-    System.out.println("doFilter here.");
+    System.out.println("AdminAuthenticationFilter called.");
     
     //get authorization token
     Cookie[] cookies = req.getCookies();
@@ -47,13 +47,10 @@ public class AdminAuthenticationFilter implements Filter {
     Employee emp = new AuthenticateDbHandler().employeeFromJWT(webTokens);
     
     if(jsonWebToken == null || xsrfToken == null){
-    	//error case here
+    	//not logged in. Redirect to login
     	request.getRequestDispatcher("/login.jsp").forward(request, response);
     }else{
-    
-	    AuthenticateDbHandler auth = new AuthenticateDbHandler();
-
-		if( !emp.isSuper_admin()){
+		if( emp == null || !emp.isSuper_admin()){
 			System.out.println("Need SUPER ADMIN privileges to access.");
 			request.getRequestDispatcher("/login.jsp").forward(request, response);
 			return;

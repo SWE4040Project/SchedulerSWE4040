@@ -15,7 +15,7 @@ public class Shift {
     public static boolean importFromCSV(int emp_id, int location_id, Timestamp scheduled_start, Timestamp scheduled_end, Timestamp real_start,
                                         Timestamp real_end, Timestamp approved_start, Timestamp approved_end, int available, String shift_notes){
 
-        OraclePreparedStatement stmt = null;
+    	OraclePreparedStatement stmt = null;
         Connection con = null;
         boolean success = false;
         try{
@@ -40,14 +40,12 @@ public class Shift {
 
             success = true;
 
-
         }catch(Exception e){
             e.printStackTrace();
         }finally{
             try{stmt.close();
             }catch(Exception ignore){}
-            return success;
         }
-
+        return success;
     }
 }

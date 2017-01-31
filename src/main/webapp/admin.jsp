@@ -37,7 +37,6 @@
            <b class="caret"></b></h3></a>
          <ul class="dropdown-menu">
            <li><a href="#" onclick="load_data('employees')">Employees</a></li>
-           <li><a href="#" onclick="load_data('worked_shifts')">Worked Shifts</a></li>
            <li><a href="#" onclick="load_data('breaks')">Breaks</a></li>
            <li><a href="#" onclick="load_data('companies')">Companies</a></li>
            <li><a href="#" onclick="load_data('location')">Location</a></li>

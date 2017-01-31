@@ -83,12 +83,6 @@ public class ClockinResource {
     	
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-//    	if( !auth.isAuth(webTokens) ){
-//    		return Response.status(Response.Status.UNAUTHORIZED).entity("{\"ERROR\" : "
-//        			+ "\"Employee token "+ webTokens.getJsonWebToken()
-//        			+" is not authorized.\"}").build();	
-//    	}
-//    	System.out.println("Authorized.");
     	
     	Status status = Response.Status.OK;
     	
@@ -121,12 +115,6 @@ public class ClockinResource {
     	
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-//    	if( !auth.isAuth(webTokens) ){
-//    		return Response.status(Response.Status.UNAUTHORIZED).entity("{\"ERROR\" : "
-//        			+ "\"Employee token "+ webTokens.getJsonWebToken()
-//        			+" is not authorized.\"}").build();	
-//    	}
-//    	System.out.println("Authorized.");
     	
     	Status status = Response.Status.OK;
     	
@@ -159,12 +147,6 @@ public class ClockinResource {
     	
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-//    	if( !auth.isAuth(webTokens) ){
-//    		return Response.status(Response.Status.UNAUTHORIZED).entity("{\"ERROR\" : "
-//        			+ "\"Employee token "+ webTokens.getJsonWebToken()
-//        			+" is not authorized.\"}").build();	
-//    	}
-//    	System.out.println("Authorized.");
     	
     	Status status = Response.Status.OK;
     	
@@ -181,7 +163,7 @@ public class ClockinResource {
     	
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.breakInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
-    	if( error.length() > 0 ){
+    	if( error == null || error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
     	}
@@ -197,12 +179,6 @@ public class ClockinResource {
     	
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-//    	if( !auth.isAuth(webTokens) ){
-//    		return Response.status(Response.Status.UNAUTHORIZED).entity("{\"ERROR\" : "
-//        			+ "\"Employee token "+ webTokens.getJsonWebToken()
-//        			+" is not authorized.\"}").build();	
-//    	}
-//    	System.out.println("Authorized.");
     	
     	Status status = Response.Status.OK;
     	
@@ -235,12 +211,6 @@ public class ClockinResource {
     	
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-//    	if( !auth.isAuth(webTokens) ){
-//    		return Response.status(Response.Status.UNAUTHORIZED).entity("{\"ERROR\" : "
-//        			+ "\"Employee token "+ webTokens.getJsonWebToken()
-//        			+" is not authorized.\"}").build();	
-//    	}
-    	System.out.println("Authorized.");
     	
     	Status status = Response.Status.OK;
     	
@@ -294,9 +264,9 @@ public class ClockinResource {
     	
     	return Response.status(status).entity("{\"Login\":\"Ok\"}").header("Content-Type", "application/json")
 				.header("SET-COOKIE", "Authorization=" + webTokens.getJsonWebToken() 
-                      + ";Path=/Scheduler; Secure; HttpOnly")
+                      + "; Path=/; Secure; HttpOnly")
 				.header("SET-COOKIE", "xsrfToken=" + webTokens.getXsrfToken() 
-                + ";Path=/Scheduler; ").build();
+                + "; Path=/; ").build();
     }
     
     
@@ -346,7 +316,6 @@ public class ClockinResource {
     
     private enum DATABASE_TABLES {
     	employees,
-    	worked_shifts,
     	breaks,
     	companies,
     	location,

@@ -196,6 +196,56 @@ public class AuthenticateDbHandler {
     	return null;
 	}
 
+	public Claims getClaims(WebTokens compactJws) {
+		String jsonToken = compactJws.getJsonWebToken();
+    	String encodedKey = getSecretKey();
+        
+    	try{
+	    	byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
+	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
+	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(jsonToken);
+	
+		    System.out.println("Log: trusted:  " + jsonToken);
+		    //This line will throw an exception if it is not a signed JWS (as expected)
+		    Claims claims = Jwts.parser()         
+		       .setSigningKey(signingKey)
+		       .parseClaimsJws(jsonToken).getBody();
+	
+			String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+		
+			if( compactJws.getXsrfToken() == null || !compactJws.getXsrfToken().equals(xsrfToken) ){
+				throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+			}
+
+			return claims; //valid key
+	    }catch (SignatureException se) {
+    	    //don't trust the JWT!
+    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage());
+    	}catch (ExpiredJwtException eje){
+    		//don't trust the JWT!
+    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+    	}catch(IllegalArgumentException iae){
+    		//no JWT?
+    		System.out.println("ERROR. Expired token -> " + iae.getMessage());
+    	}catch(Exception e){
+	    	e.printStackTrace();
+	    }
+	   
+	    return null;
+	}
+	
+	public Employee employeeFromJWT(WebTokens tokens){
+		Claims claims = getClaims(tokens);
+		if(claims == null){
+			return null;
+		}
+		int emp_id = (Integer) claims.get(JsonVar.EMPLOYEE_ID);
+		Employee emp = Employee.getEmployeeById(emp_id);
+		
+		return emp;
+
+	}
+	
 	public int getInt(String key, WebTokens compactJws) {
 		String jsonToken = compactJws.getJsonWebToken();
     	String encodedKey = getSecretKey();
@@ -210,12 +260,12 @@ public class AuthenticateDbHandler {
 	       .parseClaimsJws(jsonToken).getBody();
 
 		String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
-		if( !compactJws.getXsrfToken().equals(xsrfToken) ){
-			throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
-		}
 	    
 	    int result = -1;
 	    try{
+	    	if( !compactJws.getXsrfToken().equals(xsrfToken) ){
+				throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+			}
 	    	result = (Integer) claims.get(key);
 	    }catch (SignatureException se) {
     	    //don't trust the JWT!
@@ -268,10 +318,4 @@ public class AuthenticateDbHandler {
 //    	return false;
 //	}
 
-	public Employee employeeFromJWT(WebTokens tokens){
-		int emp_id = getInt(JsonVar.EMPLOYEE_ID, tokens);
-		Employee emp = Employee.getEmployeeById(emp_id);
-		return emp;
-
-	}
 }

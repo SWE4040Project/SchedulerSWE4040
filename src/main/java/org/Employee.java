@@ -6,6 +6,9 @@ import oracle.sql.RAW;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+
+import org.Employee.Clock_State;
+
 import java.security.SecureRandom;
 import java.sql.Connection;
 
@@ -133,10 +136,10 @@ public class Employee {
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally{
-			try{stmt.close();
-			}catch(Exception ignore){}
+			try{stmt.close();}catch(Exception ignore){}
 		}
 	}
+	
 
 	public static Employee getEmployeeById(int id){
 		OraclePreparedStatement stmt = null;
@@ -169,9 +172,15 @@ public class Employee {
 			e.printStackTrace();
 		}finally{
 			try{stmt.close();}catch(Exception ignore){}
-			return emp;
 		}
+		return emp;
 	}
+	
+	/*public void setCurrentShiftandClockinState(int current_shift){
+		Employee emp = new ClockDbHandler().getEmployeeClockStateandWorkedShiftID(this.id, current_shift);
+		this.id = emp.getId();
+		this.current_worked_shift_id = emp.getCurrent_worked_shift_id();
+	}*/
 
 	private byte[] newSalt(){
 		Random r = new SecureRandom();
@@ -215,8 +224,8 @@ public class Employee {
 		}catch(Exception e){
 			System.out.println(e.getMessage());
 			System.out.println(e.getStackTrace());
-			return null;
 		}
+		return null;
 	}
 
 	//This method is intended for inserting new employees from CSV
@@ -252,8 +261,7 @@ public class Employee {
 		}finally{
 			try{stmt.close();
 			}catch(Exception ignore){}
-			return success;
 		}
-
+		return success;
 	}
 }

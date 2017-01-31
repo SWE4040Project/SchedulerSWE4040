@@ -23,8 +23,8 @@
         "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-	<display-name>Wink SDK demo</display-name>
-	<description>Demonstration of SDK features</description>
+	<display-name>SWE 4040 Project</display-name>
+	<description>Senior Design project created by UNB Students</description>
 	
 	<filter>
 	    <filter-name>AuthenticationFilter</filter-name>
@@ -37,6 +37,10 @@
 	<filter-mapping>
 	    <filter-name>AuthenticationFilter</filter-name>
 	    <url-pattern>/rest/clockin/*</url-pattern> <!-- url from where you implement the filtering -->
+	</filter-mapping>
+	<filter-mapping>
+	    <filter-name>AuthenticationFilter</filter-name>
+	    <url-pattern>/index.jsp</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
 	<filter-mapping>
 	    <filter-name>AuthenticationFilter</filter-name>

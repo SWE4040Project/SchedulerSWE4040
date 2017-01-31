@@ -6,44 +6,30 @@
 <head>
 	<%@include file="./common/header.jsp" %>
 	<link rel="stylesheet" type="text/css" href="css/main.css">
+	
+	<%@ include file="./common/footer.jsp" %>
 </head>
 <body>
 
 <div class="container">
 	<div class="row vertical-offset-100">
 		<div class="col-md-4 col-md-offset-4">
+			<div style="float:right;"><button style="margin: 0px;" onclick="globalweb_employee_logout();" class="btn btn-warning">Logout</button></div>
 			<div class="panel panel-default">
 				<div class="panel panel-primary">
+					<%@ page import="org.Employee" %>
 					<%
-					/*
-						1. Get current employee state
-						2. Load screen based on state
-					*/
-					String previousScreen = null;
-					
-					Cookie[] cookies = request.getCookies();
-					if(cookies !=null){
-					    for(Cookie cookie : cookies){
-					        if(cookie.getName().equals("previousScreen")){
-					        	previousScreen = cookie.getValue();
-					        }
-					    }
-					}
-					
-					System.out.println("previousScreen = " + previousScreen);
+					Employee emp = (Employee) request.getAttribute("employeeObject");
 					
 					//load screen content
-					if(previousScreen == null){
+					if(emp == null){
 						response.sendRedirect("login.jsp");
-					}else if(previousScreen.equals("login")){ 
-						%><jsp:include page="clock_in.jsp"/><%
-					}else if(previousScreen.equals("clock_in")){
-						response.sendRedirect("in_shift.jsp");
-					}else if(previousScreen.equals("in_shift")){
-						//will be null on clockout
-						response.sendRedirect("on_break.jsp");
-					}else if(previousScreen.equals("on_break")){
-						response.sendRedirect("in_shift.jsp");
+					}else if(emp.getEmployeeClockState() == 0){
+						%><jsp:include page="partial_clock_in.jsp"/><%
+					}else if(emp.getEmployeeClockState() == 1){
+						%><jsp:include page="partial_in_shift.jsp"/><%
+					}else if(emp.getEmployeeClockState() == 2){
+						%><jsp:include page="partial_on_break.jsp"/><%
 					}else{
 						//default
 						response.sendRedirect("login.jsp");
@@ -54,9 +40,6 @@
 		</div>
 	</div> 
 </div>
-
-<%@ include file="./common/footer.jsp" %>
-<script src="./js/clock_in.js"></script>
 
 </body>
 </html>

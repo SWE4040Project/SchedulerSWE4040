@@ -6,6 +6,13 @@ body {
 	height: 100%;
 }
 
+.table {
+	flex: 1;
+	display: flex;
+	max-width: 100%;
+	overflow: auto;
+}
+
 .page-container {
 	height: inherit;
 }

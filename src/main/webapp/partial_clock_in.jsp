@@ -3,7 +3,7 @@
 </div>
 <div class="panel-body">
    <div class="centered">
-   	<legend>Clocked In.</legend>
+   	<legend>Clocking In...</legend>
   	</div>
   	
   	<div class="list-group">
@@ -50,10 +50,21 @@
 	    </div>
   	</div>
  	</div>
+ 	<div id="errorMessage">
+		<div class="panel panel-danger notifications">
+		  	<div class="panel-heading centered">
+			  	<div id="errorText">
+ 	 				<i class="material-icons notifications">error</i> Clock-in did not succeed. Please logout and try again.
+ 	 			</div>
+		   	</div>
+		</div>
+	</div>
 
    <div class="form-group">
      <div class="centered col-md-12">
-       <button class="btn btn-primary">Okay</button>
+       <button id="button_clockin" class="btn btn-primary">Clock-in</button>
      </div>
    </div>
 </div>
+
+<script src="./js/clock_in.js"></script>
