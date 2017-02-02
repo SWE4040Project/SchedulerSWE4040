@@ -5,7 +5,20 @@
    <div class="centered">
    	<legend>Clocking In...</legend>
   	</div>
-  	
+
+	<%@ page import="org.Shift" %>
+	<%
+
+		Shift currentShift = new Shift();
+
+		//Need to create this method in the Shift class
+		String error = currentShift.findCurrentShiftByEmployeeId(1); //have employee id through index.jsp (I think)
+  		if(error.length() > 0){
+  		    //prints to the console if an error has occurred.
+  		    System.out.println("An error has occured. " + error);
+		}
+	%>
+
   	<div class="list-group">
  			<div class="list-group-item">
     	<div class="row-action-primary">
