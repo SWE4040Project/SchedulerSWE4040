@@ -19,14 +19,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<!-- Project details -->
 	<modelVersion>4.0.0</modelVersion>
+	<groupId>BrentProject</groupId>
 	<artifactId>SchedulerSWE40404</artifactId>
 	<packaging>war</packaging>
-	<name>Apache Wink :: Scheduler</name>
-	<parent>
-		<groupId>org.apache.wink.example</groupId>
-		<artifactId>apps</artifactId>
-		<version>2</version>
-	</parent>
+	<name>Scheduler</name>
+	<version>1.5</version>
+
 	<!-- Build section -->
 	<build>
 		<finalName>Scheduler</finalName>
@@ -36,10 +34,12 @@
 		<dependency>
 			<groupId>org.apache.wink</groupId>
 			<artifactId>wink-common</artifactId>
+			<version>1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.wink</groupId>
 			<artifactId>wink-server</artifactId>
+			<version>1.4</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.code.gson</groupId>
@@ -74,8 +74,12 @@
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
 		</dependency>
-
+		<!-- ORACLE database driver -->
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6</artifactId>
+			<version>11.2.0</version>
+		</dependency>
 
 	</dependencies>
-	
 </project>

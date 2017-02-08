@@ -1,5 +1,5 @@
 var SCHEDULER_APP = {};
-SCHEDULER_APP.website = "https://www.clockmein.me:8443"; //https://www.clockmein.me:8443
+SCHEDULER_APP.website = "https://swe4040.herokuapp.com"; //https://localhost:8443
 SCHEDULER_APP.base_url = SCHEDULER_APP.website;
 SCHEDULER_APP.url_clockin = SCHEDULER_APP.base_url + "/rest/clockin";
 SCHEDULER_APP.xsrfTokenCookieName = "xsrfToken";

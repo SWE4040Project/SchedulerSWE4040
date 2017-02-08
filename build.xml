@@ -20,7 +20,7 @@
 
 <project name="Scheduler" default="dist" basedir=".">
 	<description>
-        Ant build file for Wink example Bookmarks
+        Ant build file for SWE 4040 Project
     </description>
 
 	<property name="final.war.name" value="Scheduler.war" />

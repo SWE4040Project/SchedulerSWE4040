@@ -35,7 +35,7 @@ function edit_row(no)
 	$('#saveChangesButton').on( "click", function() {
 		$('#saveChangesButton').prop('disabled', true);
 		
-		var url = "https://localhost:8443/Scheduler/rest/database/edit?table="+currentTableName;
+		var url = SCHEDULER_APP.base_url+"/rest/database/edit?table="+currentTableName;
 		
 		//get current input data
 		var values = [];
@@ -92,7 +92,7 @@ function add_row()
 	$('#addChangesButton').on( "click", function() {
 		$('#addChangesButton').prop('disabled', true);
 		
-		var url = "https://localhost:8443/Scheduler/rest/database/add?table="+currentTableName;
+		var url = SCHEDULER_APP.base_url+"/rest/database/add?table="+currentTableName;
 		
 		//get current input data
 		var values = [];
@@ -141,7 +141,7 @@ function delete_row(no)
 	$('#deleteButton').on( "click", function() {
 		$('#deleteButton').prop('disabled', true);
 		
-		var url = "https://localhost:8443/Scheduler/rest/database/delete?table="+currentTableName;
+		var url = SCHEDULER_APP.base_url+"/rest/database/delete?table="+currentTableName;
 		
 		//get params from page
 		var params = {
@@ -181,7 +181,7 @@ function load_data(tableName){
 	var tableTitle = document.getElementById("dropdownLabel");
 	tableTitle.innerHTML = "<h3>" + tableName.toUpperCase() + " table <b class='caret'></b></h3>";
 	
-	var url = "https://localhost:8443/Scheduler/rest/database?table="+tableName;
+	var url = SCHEDULER_APP.base_url+"/rest/database?table="+tableName;
 	$.ajax({
 	    url: url,
 	    type: 'GET',
