@@ -261,21 +261,14 @@ public class ClockinResource {
     	System.out.println("Authorization\":\"" + webTokens.getJsonWebToken());
 
     	String response = "{"
-				+ "\"Authorization\":\""+webTokens.getJsonWebToken() + "\","
-				+ "\"xsrfToken\":\"" + webTokens.getXsrfToken() + "\""
+				+ "\""+JsonVar.AUTHORIZATION+"\":\""+webTokens.getJsonWebToken() + "\","
+				+ "\""+JsonVar.XSRF_TOKEN+"\":\"" + webTokens.getXsrfToken() + "\""
 				+ "}";
 
-		//NewCookie authCookie = new NewCookie(JsonVar.AUTHORIZATION, webTokens.getJsonWebToken());
-		//NewCookie authCookie = new NewCookie(JsonVar.AUTHORIZATION, webTokens.getJsonWebToken(), "/", null, "Comment on cookie here.",
-		//	1000000, false);
-		//NewCookie xCookie = new NewCookie(JsonVar.XSRF_TOKEN, webTokens.getXsrfToken());
-
-		//return Response.status(status).entity(response).cookie(authCookie).cookie(xCookie).header("Content-Type", "application/json").build();
-
-    	return Response.status(status).entity(response).header("Content-Type", "application/json")
-				.header("SET-COOKIE", "Authorization=" + webTokens.getJsonWebToken()
+	  	return Response.status(status).entity(response).header("Content-Type", "application/json")
+				.header("SET-COOKIE", JsonVar.AUTHORIZATION+"=" + webTokens.getJsonWebToken()
                       + "; Path=/; HttpOnly")
-				.header("SET-COOKIE", "xsrfToken=" + webTokens.getXsrfToken()
+				.header("SET-COOKIE", JsonVar.XSRF_TOKEN+"=" + webTokens.getXsrfToken()
                 + "; Path=/;").build();
     }
 
