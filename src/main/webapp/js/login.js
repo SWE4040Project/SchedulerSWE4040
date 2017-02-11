@@ -38,6 +38,10 @@ function login(){
     var success = function(data) {
         console.log("Data Status (Clocked in = 0): " + data.Status);
 
+        // Save data to sessionStorage
+        sessionStorage.setItem(SCHEDULER_APP.authorization, "Bearer " + data.Authorization);
+        sessionStorage.setItem(SCHEDULER_APP.xsrfTokenName, data.xsrfToken);
+
     	//clocked in page - replaces current page in back stack
     	window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
     };

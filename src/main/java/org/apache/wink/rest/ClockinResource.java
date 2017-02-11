@@ -21,14 +21,10 @@ package org.apache.wink.rest;
  *******************************************************************************/
 
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.servlet.http.Cookie;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -56,7 +52,7 @@ import java.util.Iterator;
 
 @Path("/")
 public class ClockinResource {
-	
+
 	private static final String PATH_CLOCKIN 		= "clockin/clockin";
 	private static final String PATH_CLOCKOUT 		= "clockin/clockout";
 	private static final String PATH_BREAKIN 		= "clockin/breakin";
@@ -71,7 +67,7 @@ public class ClockinResource {
 	private static final String PATH_DATABASE_DELETE= "database/delete";
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
-	 
+
 	Gson gson = new Gson();
 
 
@@ -79,13 +75,13 @@ public class ClockinResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response clockin(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj) {
-    	
+    public Response clockin(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
+
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
-    	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-    	
+    	WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
     	Status status = Response.Status.OK;
-    	
+
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
@@ -96,28 +92,28 @@ public class ClockinResource {
     	params.setEmployeeId(empId);
 
     	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is clocked in.\"}";
-    	
+
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
     	}
-    	
+
 		return Response.status(status).entity(result).build();
     }
-    
+
     @Path(PATH_CLOCKOUT)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response clockout(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj) {
-    	
+    public Response clockout(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
+
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
-    	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-    	
+    	WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
     	Status status = Response.Status.OK;
-    	
+
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
@@ -128,28 +124,28 @@ public class ClockinResource {
     	params.setEmployeeId(empId);
 
     	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is clocked out.\"}";
-    	
+
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.clockOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
     	}
-    	
+
 		return Response.status(status).entity(result).build();
     }
-    
+
     @Path(PATH_BREAKIN)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response breakin(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj) {
-    	
+    public Response breakin(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
+
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
-    	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-    	
+    	WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
     	Status status = Response.Status.OK;
-    	
+
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
@@ -158,30 +154,30 @@ public class ClockinResource {
     		status = Response.Status.BAD_REQUEST;
     	}
     	params.setEmployeeId(empId);
-    	
+
     	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is on break.\"}";
-    	
+
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.breakInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
     	if( error == null || error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
     	}
-    	
+
 		return Response.status(status).entity(result).build();
     }
-    
+
     @Path(PATH_BREAKOUT)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response breakout(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj) {
-    	
+    public Response breakout(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
+
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
-    	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-    	
+    	WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
     	Status status = Response.Status.OK;
-    	
+
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
@@ -190,30 +186,30 @@ public class ClockinResource {
     		status = Response.Status.BAD_REQUEST;
     	}
     	params.setEmployeeId(empId);
-    	
+
     	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is off break.\"}";
-    	
+
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.breakOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
     	}
-    	
+
 		return Response.status(status).entity(result).build();
     }
-    
+
     @Path(PATH_ADDSHIFTNOTE)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addnote(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj) {
-    	
+    public Response addnote(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
+
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
-    	WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
-    	
+    	WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
     	Status status = Response.Status.OK;
-    	
+
     	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
     	params.setEmployeeId(-1); //clear employeeId if one is passed.
     	//parse employeeId from jsonWebToken
@@ -224,27 +220,27 @@ public class ClockinResource {
     	params.setEmployeeId(empId);
 
     	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" has added or modified their shift notes.\"}";
-    	
+
 		ClockDbHandler clk = new ClockDbHandler();
 		String error = clk.addNoteWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getWorkedNote());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
     	}
-    	
+
 		return Response.status(status).entity(result).build();
     }
-    
+
     @Path(LOGIN)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(String obj) {
-    	
+
     	Status status = Response.Status.OK;
-    	
+
     	LoginParameters params = gson.fromJson(obj, LoginParameters.class);
-    	
+
     	if(params.getPassword() == null || params.getPassword().length() <= 0){
     		status = Response.Status.FORBIDDEN;
     	}
@@ -254,52 +250,65 @@ public class ClockinResource {
     		status = Response.Status.FORBIDDEN;
     		return Response.status(status).header("Content-Type", "application/json").build();
     	}
-    	
-    	//create jwt   
+
+    	//create jwt
     	WebTokens webTokens = auth.createJWT(emp);
-    	
+
     	if(webTokens == null){
-    		return Response.status(status).entity("{\"Login\":\"Invalid\"}").header("Content-Type", "application/json").build();	
+    		return Response.status(Status.NOT_ACCEPTABLE).entity("{\"Login\":\"Invalid\"}").header("Content-Type", "application/json").build();
     	}
-    	
-    	return Response.status(status).entity("{\"Login\":\"Ok\"}").header("Content-Type", "application/json")
-				.header("SET-COOKIE", "Authorization=" + webTokens.getJsonWebToken() 
-                      + "; Path=/; Secure; HttpOnly")
-				.header("SET-COOKIE", "xsrfToken=" + webTokens.getXsrfToken() 
-                + "; Path=/; ").build();
+
+    	System.out.println("Authorization\":\"" + webTokens.getJsonWebToken());
+
+    	String response = "{"
+				+ "\"Authorization\":\""+webTokens.getJsonWebToken() + "\","
+				+ "\"xsrfToken\":\"" + webTokens.getXsrfToken() + "\""
+				+ "}";
+
+		//NewCookie authCookie = new NewCookie(JsonVar.AUTHORIZATION, webTokens.getJsonWebToken());
+		//NewCookie authCookie = new NewCookie(JsonVar.AUTHORIZATION, webTokens.getJsonWebToken(), "/", null, "Comment on cookie here.",
+		//	1000000, false);
+		//NewCookie xCookie = new NewCookie(JsonVar.XSRF_TOKEN, webTokens.getXsrfToken());
+
+		//return Response.status(status).entity(response).cookie(authCookie).cookie(xCookie).header("Content-Type", "application/json").build();
+
+    	return Response.status(status).entity(response).header("Content-Type", "application/json")
+				.header("SET-COOKIE", "Authorization=" + webTokens.getJsonWebToken()
+                      + "; Path=/; HttpOnly")
+				.header("SET-COOKIE", "xsrfToken=" + webTokens.getXsrfToken()
+                + "; Path=/;").build();
     }
-    
-    
+
     /*
      * Test REST calls
      * 1. Json is the most basic call - to ensure the system is up and running
-     * 2. 
+     * 2.
      */
-    
+
     @Path(PATH_TEST_AUTH)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response testAuth() {
-		return Response.status(Response.Status.OK).entity("{\"Authorized\" : \"true\"}").build();	
+		return Response.status(Response.Status.OK).entity("{\"Authorized\" : \"true\"}").build();
     }
-       	
+
     @Path(PATH_JSON)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJson() {
-    	
+
     	// JSON to Java object, read it from a Json String.
     	String jsonInString = "{'name' : 'Brent','other' : 'Other String','randomValue' : 12345}";
     	SimplePOJO json = gson.fromJson(jsonInString, SimplePOJO.class);
-    	
+
     	json.setOther("Success");
 
     	// JSON to JsonElement, convert to String later.
     	String result = gson.toJson(json);
-    	    	
-    	return Response.status(Response.Status.OK).entity(result).build();	
+
+    	return Response.status(Response.Status.OK).entity(result).build();
     }
-    
+
     @Path(PATH_CONNECTIONS)
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
@@ -307,13 +316,13 @@ public class ClockinResource {
     public Response getDatabaseConnectionCount(){
     	return Response.status(Response.Status.OK)
     			.entity(
-    				"{\"Active Database Connections\": \"" 
+    				"{\"Active Database Connections\": \""
     				+ DatabaseConnectionPool.getInstance().getActiveConnectionCount()
     				+ "\"}"
     			)
     			.header("Content-Type", "application/json").build();
     }
-    
+
     private enum DATABASE_TABLES {
     	employees,
     	breaks,
@@ -325,23 +334,23 @@ public class ClockinResource {
     	employee_locations,
     	employee_positions
     }
-    
+
     @Path(PATH_DATABASE)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getData(@QueryParam("table") String table) {
-    	
+
     	Status status = Response.Status.OK;
     	JsonObject dataTable = new JsonObject();
     	Connection con = null;
     	String result = null;
-    	try{  
-    		
+    	try{
+
     		//connect to database via connection pool
     		DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
         	con = dbpool.getConnection();
-        	
-    		//create the statement object  
+
+    		//create the statement object
     		Statement stmt = con.createStatement();
 
     		//prevent sql injection
@@ -353,10 +362,10 @@ public class ClockinResource {
 			} catch (IllegalArgumentException e) {
 			    throw new Exception("Table does not exist in the database.");
 			}
-    		
+
     		//step execute query
     		ResultSet rs = stmt.executeQuery(sqlStatement);
-    		
+
     		ResultSetMetaData rsmd = rs.getMetaData();
     		int rsmdLength = rsmd.getColumnCount();
     		dataTable.addProperty("columnCount",rsmdLength);
@@ -366,7 +375,7 @@ public class ClockinResource {
 			}
 			dataTable.add("columns", jaColumns);
     		int rowCount = 0;
-    		
+
     		JsonArray array = new JsonArray();
     		while(rs.next())  {
     			rowCount++;
@@ -379,15 +388,15 @@ public class ClockinResource {
     		dataTable.add("rows", array);
     		dataTable.addProperty("rowCount",rowCount);
     		System.out.println("dataTable.toString() " + dataTable.toString());
-        	
+
         	result = dataTable.toString();
-    		
-		}catch(Exception e){ 
+
+		}catch(Exception e){
 			System.out.println("Catching exception: " + e.getMessage());
 			status = Response.Status.INTERNAL_SERVER_ERROR;
 			result = e.getMessage();
 		}finally{
-			//step5 close the connection object  
+			//step5 close the connection object
     		try {con.close();} catch (Exception e){
     			System.out.println("Finally: " + e.getMessage());
     		}
@@ -651,7 +660,7 @@ public class ClockinResource {
 	@GET
 	//@Produces(MediaType.APPLICATION_JSON)
 	//@Produces(MediaType.APPLICATION_JSON)
-	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj){
+	public Response csv(@CookieParam(JsonVar.AUTHORIZATION) String jsonWebToken, @CookieParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj){
 		Status status = Response.Status.OK;
 
 		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);

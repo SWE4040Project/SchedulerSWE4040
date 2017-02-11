@@ -24,41 +24,31 @@ public class AuthenticationFilter implements Filter {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;  
     
-    
     System.out.println("AuthenticationFilter called.");
      
-    //get authorization token
+    //get authorization token from Cookies
     Cookie[] cookies = req.getCookies();
     String jsonWebToken = null;
     String xsrfToken = null;
-    
-    //mobile or web
-    String isRequestFromMobile = null;
-    isRequestFromMobile = req.getHeader("RequestFromMobile");
-    if(isRequestFromMobile != null){
-    	// MOBILE
-    	jsonWebToken = req.getHeader("Authorization");
-    	jsonWebToken = jsonWebToken.replace("Bearer ",""); //remove Bearer<whitespace> 
-    	xsrfToken = req.getHeader("xsrfToken");
-    }else{
-    	// WEB
-    	if (cookies != null) {
-	      for (int i = 0; i < cookies.length; i++) {
-	        if (cookies[i].getName().equals("Authorization")) {
-	        	jsonWebToken = cookies[i].getValue();
-	        }
-	        if (cookies[i].getName().equals("xsrfToken")) {
-	        	xsrfToken = cookies[i].getValue();
-	        }
-	      }
-	    }
+
+    //from Cookies
+    if (cookies != null) {
+      for (int i = 0; i < cookies.length; i++) {
+        if (cookies[i].getName().equals("Authorization")) {
+            jsonWebToken = cookies[i].getValue();
+        }
+        if (cookies[i].getName().equals("xsrfToken")) {
+            xsrfToken = cookies[i].getValue();
+        }
+      }
     }
-    
+
     WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
     Employee emp = new AuthenticateDbHandler().employeeFromJWT(webTokens);
     
     if(jsonWebToken == null || xsrfToken == null){
     	//not logged in. Redirect to login
+        System.out.println("jsonWebToken and/or xsrfToken null. " + jsonWebToken + " : " + xsrfToken);
     	request.getRequestDispatcher("/login.jsp").forward(request, response);
     }else{
 		if(emp == null || emp.getId() < -1 ){

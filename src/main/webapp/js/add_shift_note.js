@@ -24,6 +24,10 @@ function addshiftnote(){
 	$.ajax({
 	    url: url,
 	    type: 'POST',
+        headers: {
+            'Authorization':sessionStorage.getItem(SCHEDULER_APP.authorization),
+            'xsrfToken': sessionStorage.getItem(SCHEDULER_APP.xsrfTokenName)
+        },
 	    data: JSON.stringify(params),
 	    contentType: 'application/json',
 	    dataType: 'json',

@@ -20,6 +20,8 @@
 					<%@ page import="org.Employee" %>
 					<%
 					Employee emp = (Employee) request.getAttribute("employeeObject");
+
+					System.out.println("index.jsp called.");
 					
 					//load screen content
 					if(emp == null){

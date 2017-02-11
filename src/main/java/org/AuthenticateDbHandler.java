@@ -81,7 +81,7 @@ public class AuthenticateDbHandler {
 				byte[] hashed_password = i.getBytes(iter++);
 				byte[] salt = i.getBytes(iter++);
 
-	        	System.out.println("db call: " + name);
+	        	System.out.println("AuthenticateDbHandler -> login -> employee name from sql query: " + name);
 
 	        	Employee emp = 
 	        			new Employee(
@@ -127,12 +127,13 @@ public class AuthenticateDbHandler {
 	    			.claim(JsonVar.MANAGER, emp.isManager())
 	    			.claim(JsonVar.SUPER_ADMIN, emp.isSuper_admin())
 	    			.claim(JsonVar.XSRF_TOKEN, xsrfToken)
-	    			.setIssuer("https://localhost:8443/Scheduler/")
+	    			.setIssuer("localhost")
 	    			.setExpiration( new Date(System.currentTimeMillis() + milliSecondOffset))
 	    			.setSubject("Employee")
 	    			.signWith(SignatureAlgorithm.HS512, signingKey)
 	    			.compact();
     	    //created
+			System.out.println("LOG: Login->createJWT->jwt=\n"+compactJws);
 	    	return new WebTokens(compactJws, xsrfToken);
     	} catch (Exception e) {
 
