@@ -18,15 +18,11 @@ import io.jsonwebtoken.SignatureException;
 import oracle.jdbc.OraclePreparedStatement;
 
 public class AuthenticateDbHandler {
-	
-	Connection con;
-    public AuthenticateDbHandler(){
-        con = null;
-        try{
-        	DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();       	
-        	con = dbpool.getConnection();
-        }catch(Exception e){        }
-    }
+
+	private DatabaseConnectionPool dbpool;
+	public AuthenticateDbHandler(){
+		dbpool = DatabaseConnectionPool.getInstance();
+	}
 	
 	/*
 	 * WARNING.
@@ -51,7 +47,9 @@ public class AuthenticateDbHandler {
     
     public Employee login(String username, String password){
     	OraclePreparedStatement stmt = null;
+    	Connection con = null;
     	try {
+			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"select "
             		+ "ID,"
@@ -103,6 +101,7 @@ public class AuthenticateDbHandler {
         	e.printStackTrace();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return null;
     }
@@ -179,7 +178,9 @@ public class AuthenticateDbHandler {
 
 	private String getSecretKey() {
 		OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"select * from system");
             ResultSet i = stmt.executeQuery();
@@ -193,6 +194,7 @@ public class AuthenticateDbHandler {
         	e.printStackTrace();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return null;
 	}

@@ -140,8 +140,9 @@ public class Shift {
             e.printStackTrace();
         }finally{
             try{stmt.close();}catch(Exception ignore){}
-            return shift;
+            try{con.close();}catch(Exception ignore){}
         }
+        return shift;
     }
 
 
@@ -177,8 +178,8 @@ public class Shift {
         }catch(Exception e){
             e.printStackTrace();
         }finally{
-            try{stmt.close();
-            }catch(Exception ignore){}
+            try{stmt.close();}catch(Exception ignore){}
+            try{con.close();}catch(Exception ignore){}
         }
         return success;
     }

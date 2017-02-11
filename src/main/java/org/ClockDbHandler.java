@@ -7,18 +7,17 @@ import org.Employee.Clock_State;
 import java.sql.*;
 
 public class ClockDbHandler {
-    Connection con;
+
+	private DatabaseConnectionPool dbpool;
     public ClockDbHandler(){
-        con = null;
-        try{
-        	DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();       	
-        	con = dbpool.getConnection();
-        }catch(Exception e){        }
-    }
+		dbpool = DatabaseConnectionPool.getInstance();
+	}
     
     private Clock_State getEmployeeClockState(int employee_id, int shift_id){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"select emp.state from employees emp join scheduled_shifts shfts "
             		+ "on emp.ID = shfts.EMPLOYEES_ID "
@@ -44,13 +43,16 @@ public class ClockDbHandler {
         }catch(Exception e){
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return null;
     }
     
     private Employee getEmployeeClockStateandWorkedShiftID(int employee_id, int shift_id){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"select emp.state, shfts.ID from employees emp "
             		+ "join scheduled_shifts shfts on emp.ID = shfts.EMPLOYEES_ID "
@@ -82,13 +84,16 @@ public class ClockDbHandler {
         }catch(Exception e){
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return null;
     }
     
     private boolean updateEmployeeState(int employee_id, Clock_State clockedIn) {
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
     		//parse result
         	int state = -1;
         	switch(clockedIn){
@@ -111,13 +116,16 @@ public class ClockDbHandler {
         }catch(Exception e){
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return false;
 	}
 
     public String clockInWithScheduledShift(int employee_id, int shift_id, int location_id){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
     		Clock_State state = getEmployeeClockState(employee_id, shift_id);
         	if(state != Clock_State.NOT_CLOCKED_IN){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
@@ -145,12 +153,15 @@ public class ClockDbHandler {
             return e.getMessage();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     }
     
     public String breakInWithScheduledShift(int employee_id, int shift_id, int location_id){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
     		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
     		int state = emp.getEmployeeClockState();
         	if(state != 1){
@@ -177,12 +188,15 @@ public class ClockDbHandler {
             return e.getMessage();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     }
     
     public String breakOutWithScheduledShift(int employee_id, int shift_id, int location_id){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
     		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
     		int state = emp.getEmployeeClockState();
         	if(state != 2){
@@ -209,13 +223,16 @@ public class ClockDbHandler {
             return e.getMessage();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     }
 
 
     public String clockOutWithScheduledShift(int employee_id, int shift_id, int location_id){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
     		Clock_State state = getEmployeeClockState(employee_id, shift_id);
         	if(state != Clock_State.CLOCKED_IN){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
@@ -245,12 +262,15 @@ public class ClockDbHandler {
             return e.getMessage();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     }
     
     public String addNoteWithScheduledShift(int employee_id, int shift_id, String worked_note){
     	OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
     		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
     		int state = emp.getEmployeeClockState();
         	if(state != 1){
@@ -281,6 +301,7 @@ public class ClockDbHandler {
             return e.getMessage();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     }
 }
