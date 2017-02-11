@@ -48,47 +48,6 @@ public class ClockDbHandler {
     	return null;
     }
     
-    private Employee getEmployeeClockStateandWorkedShiftID(int employee_id, int shift_id){
-    	OraclePreparedStatement stmt = null;
-		Connection con = null;
-		try {
-			con = dbpool.getConnection();
-            stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"select emp.state, shfts.ID from employees emp "
-            		+ "join scheduled_shifts shfts on emp.ID = shfts.EMPLOYEES_ID "
-            		+ "where emp.ID = ? and shfts.ID = ?");
-            stmt.setInt(1, employee_id);
-            stmt.setInt(2, shift_id);
-            ResultSet i = stmt.executeQuery();
-            
-            Employee emp = new Employee(employee_id, null);
-            
-            if( !i.next() ){
-            	emp.setEmployeeClockState(0);
-            }else {
-            	//parse result
-            	int state = i.getInt(1);
-            	System.out.println("State: " + state);
-            	switch(state){
-            	case 0: emp.setEmployeeClockState(0);
-            	break;
-            	case 1: emp.setEmployeeClockState(1);
-            	break;
-            	case 2: emp.setEmployeeClockState(2);
-            	break;
-            	default: return null;
-            	}
-            	emp.setCurrent_worked_shift_id(i.getInt(2));
-            	return emp;
-            }
-        }catch(Exception e){
-        }finally{
-        	try{stmt.close();}catch(Exception ignore){}
-			try{con.close();}catch(Exception ignore){}
-        }
-    	return null;
-    }
-    
     private boolean updateEmployeeState(int employee_id, Clock_State clockedIn) {
     	OraclePreparedStatement stmt = null;
 		Connection con = null;
@@ -162,7 +121,8 @@ public class ClockDbHandler {
 		Connection con = null;
 		try {
 			con = dbpool.getConnection();
-    		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
+    		Employee emp = Employee.getEmployeeById(employee_id);
+			emp.setCurrent_worked_shift_id(shift_id);
     		int state = emp.getEmployeeClockState();
         	if(state != 1){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
@@ -197,7 +157,8 @@ public class ClockDbHandler {
 		Connection con = null;
 		try {
 			con = dbpool.getConnection();
-    		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
+    		Employee emp = Employee.getEmployeeById(employee_id);
+			emp.setCurrent_worked_shift_id(shift_id);
     		int state = emp.getEmployeeClockState();
         	if(state != 2){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
@@ -271,7 +232,8 @@ public class ClockDbHandler {
 		Connection con = null;
 		try {
 			con = dbpool.getConnection();
-    		Employee emp = getEmployeeClockStateandWorkedShiftID(employee_id, shift_id);
+    		Employee emp = Employee.getEmployeeById(employee_id);
+			emp.setCurrent_worked_shift_id(shift_id);
     		int state = emp.getEmployeeClockState();
         	if(state != 1){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;

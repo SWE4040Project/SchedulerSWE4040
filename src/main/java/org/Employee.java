@@ -175,12 +175,6 @@ public class Employee {
 		}
 		return emp;
 	}
-	
-	/*public void setCurrentShiftandClockinState(int current_shift){
-		Employee emp = new ClockDbHandler().getEmployeeClockStateandWorkedShiftID(this.id, current_shift);
-		this.id = emp.getId();
-		this.current_worked_shift_id = emp.getCurrent_worked_shift_id();
-	}*/
 
 	private byte[] newSalt(){
 		Random r = new SecureRandom();

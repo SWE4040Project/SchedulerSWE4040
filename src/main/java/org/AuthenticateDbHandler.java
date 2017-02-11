@@ -142,7 +142,7 @@ public class AuthenticateDbHandler {
     	return null;
     }
     
-    public boolean isAuth(WebTokens webTokens){
+    /*public boolean isAuth(WebTokens webTokens){
     	
     	try{
     		String compactJws = webTokens.getJsonWebToken();
@@ -173,7 +173,7 @@ public class AuthenticateDbHandler {
     		e.printStackTrace();
     	}
     	return false;
-    }
+    }*/
     
 
 	private String getSecretKey() {
