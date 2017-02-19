@@ -31,31 +31,45 @@
    <!-- /#sidebar-wrapper -->
 
 <div id="mainContent" class="col-sm-10">
-	<ul class="nav navbar-nav">
-       <li class="dropdown">
-         <a href="bootstrap-elements.html" data-target="#" class="dropdown-toggle" data-toggle="dropdown" id="dropdownLabel"><h3>EMPLOYEES Tables
-           <b class="caret"></b></h3></a>
-         <ul class="dropdown-menu">
-           <li><a href="#" onclick="load_data('employees')">Employees</a></li>
-           <li><a href="#" onclick="load_data('breaks')">Breaks</a></li>
-           <li><a href="#" onclick="load_data('companies')">Companies</a></li>
-           <li><a href="#" onclick="load_data('location')">Location</a></li>
-           <li><a href="#" onclick="load_data('positions')">Positions</a></li>
-           <li><a href="#" onclick="load_data('scheduled_shifts')">Scheduled Shifts</a></li>
-           <li><a href="#" onclick="load_data('system')">System</a></li>
-           <li><a href="#" onclick="load_data('employee_locations')">Employee Locations</a></li>
-           <li><a href="#" onclick="load_data('employee_positions')">Employee Positions</a></li>
-         </ul>
-       </li>
-    </ul>
-    <div class="add-button">
-    	<a id="addButton" href="javascript:void(0)" class="btn btn-primary btn-fab"><i class="material-icons">add</i></a>
+    <div id="db_manager">
+        <ul class="nav navbar-nav">
+           <li class="dropdown">
+             <a href="bootstrap-elements.html" data-target="#" class="dropdown-toggle" data-toggle="dropdown" id="dropdownLabel"><h3>EMPLOYEES Tables
+               <b class="caret"></b></h3></a>
+             <ul class="dropdown-menu">
+               <li><a href="#" onclick="load_data('employees')">Employees</a></li>
+               <li><a href="#" onclick="load_data('breaks')">Breaks</a></li>
+               <li><a href="#" onclick="load_data('companies')">Companies</a></li>
+               <li><a href="#" onclick="load_data('location')">Location</a></li>
+               <li><a href="#" onclick="load_data('positions')">Positions</a></li>
+               <li><a href="#" onclick="load_data('scheduled_shifts')">Scheduled Shifts</a></li>
+               <li><a href="#" onclick="load_data('system')">System</a></li>
+               <li><a href="#" onclick="load_data('employee_locations')">Employee Locations</a></li>
+               <li><a href="#" onclick="load_data('employee_positions')">Employee Positions</a></li>
+             </ul>
+           </li>
+        </ul>
+        <div class="add-button">
+            <a id="addButton" href="javascript:void(0)" class="btn btn-primary btn-fab"><i class="material-icons">add</i></a>
+        </div>
+        <!-- Table Skeleton - Dynamically loaded with Ajax -->
+        <table id="adminTable" class="table table-striped table-hover ">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
     </div>
-    <!-- Table Skeleton - Dynamically loaded with Ajax -->
-    <table id="adminTable" class="table table-striped table-hover ">
-      <thead></thead>
-  	  <tbody></tbody>
-    </table>
+    <%--Calendar is loaded dynamically by calendarInit() in admin.js--%>
+    <div id="calendar"></div>
+
+    <div id="csv_upload">
+
+        <form id="csv_upload_form" method="post" action="rest/csv_upload" enctype="multipart/form-data">
+            <input id="fileupload" type="file" name="file" size="40" accept="text/csv">
+            <input type="radio" name="csv_type" value="employees" checked> Employees<br>
+            <input type="radio" name="csv_type" value="shifts"> Shifts<br>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
 </div>
 <!-- /.mainContent -->
 
@@ -136,10 +150,20 @@
   </div>
 </div> 
 <!-- END Add Modal -->
-    
+
+<div id="eventContent" title="Event Details" style="display:none;">
+    <div id="shiftId" style="display: none"></div>
+    <b>Date:</b> <span id="date"></span><br><br>
+    <b>Clocked in:</b> <span id="inTime"></span><br>
+    <b>Clocked out:</b> <span id="outTime"></span><br><br>
+    <b>Notes:</b> <p id="notes"></p><br><br>
+    <p><strong><a id="approve" href="" onclick="" >Approve</a></strong></p>
+</div>
+
 <%@ include file="./common/footer.jsp" %>
 <script src="./js/menu.js"></script>
 <script src="./js/admin.js"></script>
+<script src="./fileupload/js/jquery.fileupload.js"></script>
 
 </body>
 </html>

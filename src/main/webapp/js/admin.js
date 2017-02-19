@@ -1,12 +1,85 @@
 $(document).ready(function() {
 	console.log("Loading admin page.");
+
+	calendarInit();
 	
 	$('#addButton').on( "click", function() {
 		add_row();
 	});
 	
-	load_data('employees');
+	//load_data('employees');
 });
+
+function calendarInit(){
+	$('#calendar').fullCalendar({
+		events: "rest/calendar/load",
+
+		eventRender: function (event, element) {
+			element.attr('href', 'javascript:void(0);');
+			element.click(function() {
+				$("#shiftId").html(event.id);
+				$("#date").html(moment(event.start).format('MMM Do'));
+				$("#inTime").html(moment(event.real_start).format('MMM Do h:mm A'));
+				$("#outTime").html(moment(event.real_end).format('MMM Do h:mm A'));
+				$("#notes").html(event.note);
+				$("#eventContent").dialog({ modal: true, title: event.title, width:350});
+				$("#approve").click(function(){
+					$.ajax({
+						url: "rest/calendar/approve",
+						type: 'POST',
+						data: {
+							shift_id : document.getElementById("shiftId").textContent,
+							
+						},
+						contentType: 'application/json',
+						dataType: 'json',
+						async: true,
+						success: function() {
+							$("#eventContent").css("display", "none");
+						},
+						error: function() {
+							alert("Error: something went wrong");
+						}
+					});
+				})
+			});
+		}
+	})
+}
+// function form_submit() {
+// 	$('#fileupload').fileupload({
+// 		dataType: 'json',
+// 		add: function (e, data) {
+// 			data.context = $('<button/>').text('Upload')
+// 				.appendTo(document.body)
+// 				.click(function () {
+// 					data.context = $('<p/>').text('Uploading...').replaceAll($(this));
+// 					data.submit();
+// 				});
+// 		},
+// 		done: function (e, data) {
+// 			data.context.text('Upload finished.');
+// 		}
+// 	});
+// };
+
+// $("form#csv_upload_form").submit(function () {
+// 	$('#uploading').css("visibility", "visible");
+//
+// 	$.ajax({
+// 		url: 'rest/csv_upload',
+// 		type: 'POST',
+// 		data: $("form#csv_upload_form").serialize(),
+// 		success: function(data) {
+// 			$('#uploading').textContent("Upload complete");
+// 		},
+// 		error: function(err) {
+// 			alert("Error: " + err.responseText);
+// 		}
+// 	});
+//
+// 	return false;
+// });
 
 var editColumns = [];
 var currentTableName = null;
@@ -204,10 +277,10 @@ function load_data(tableName){
 	    contentType: 'application/json',
 	    async: true,
 	    success: function(data) {
-	        console.log("data.columnCount: " + data.columnCount);
-	        console.log("data.columns: " + data.columns);
-	        console.log("data.rowCount: " + data.rowCount);
-	        console.log("data.rows: " + data.rows);
+	        // console.log("data.columnCount: " + data.columnCount);
+	        // console.log("data.columns: " + data.columns);
+	        // console.log("data.rowCount: " + data.rowCount);
+	        // console.log("data.rows: " + data.rows);
 	        
 	        //set columns
 	        editColumns = [];

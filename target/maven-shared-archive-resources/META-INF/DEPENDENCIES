@@ -22,9 +22,9 @@ From: 'QOS.ch' (http://www.qos.ch)
   - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.6.1
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
 
-From: 'The Apache Software Foundation' (http://jakarta.apache.org)
-  - Lang (http://jakarta.apache.org/commons/lang/) commons-lang:commons-lang:jar:2.3
-    License: The Apache Software License, Version 2.0  (/LICENSE.txt)
+//From: 'The Apache Software Foundation' (http://jakarta.apache.org)
+//  - Lang (http://jakarta.apache.org/commons/lang/) commons-lang:commons-lang:jar:2.3
+//    License: The Apache Software License, Version 2.0  (/LICENSE.txt)
 
 From: 'The Apache Software Foundation' (http://www.apache.org)
   - Annotation 1.1 (http://geronimo.apache.org/maven/specs/geronimo-annotation_1.1_spec/1.0) org.apache.geronimo.specs:geronimo-annotation_1.1_spec:bundle:1.0
