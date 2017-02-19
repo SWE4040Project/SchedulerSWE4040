@@ -7,6 +7,8 @@ Apache Wink Examples Apps :: Bookmarks
 
 
 From: 'an unknown organization'
+  - Gson (https://github.com/google/gson/gson) com.google.code.gson:gson:jar:2.8.0
+    License: Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - JAXB RI (https://jaxb.dev.java.net/) com.sun.xml.bind:jaxb-impl:jar:2.2.1.1
     License: CDDL 1.0  (https://glassfish.dev.java.net/public/CDDL+GPL.html)    License: GPL2 w/ CPE  (https://glassfish.dev.java.net/public/CDDL+GPL.html)
   - JavaBeans Activation Framework (JAF) (http://java.sun.com/products/javabeans/jaf/index.jsp) javax.activation:activation:jar:1.1
@@ -20,9 +22,9 @@ From: 'QOS.ch' (http://www.qos.ch)
   - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.6.1
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
 
-From: 'The Apache Software Foundation' (http://jakarta.apache.org)
-  - Lang (http://jakarta.apache.org/commons/lang/) commons-lang:commons-lang:jar:2.3
-    License: The Apache Software License, Version 2.0  (/LICENSE.txt)
+//From: 'The Apache Software Foundation' (http://jakarta.apache.org)
+//  - Lang (http://jakarta.apache.org/commons/lang/) commons-lang:commons-lang:jar:2.3
+//    License: The Apache Software License, Version 2.0  (/LICENSE.txt)
 
 From: 'The Apache Software Foundation' (http://www.apache.org)
   - Annotation 1.1 (http://geronimo.apache.org/maven/specs/geronimo-annotation_1.1_spec/1.0) org.apache.geronimo.specs:geronimo-annotation_1.1_spec:bundle:1.0

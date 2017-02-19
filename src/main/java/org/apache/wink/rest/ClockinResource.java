@@ -21,25 +21,20 @@ package org.apache.wink.rest;
  *******************************************************************************/
 
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.AuthenticateDbHandler;
-import org.ClockDbHandler;
-import org.ClockinParameters;
-import org.DatabaseConnectionPool;
-import org.Employee;
-import org.JsonVar;
-import org.LoginParameters;
-import org.WebTokens;
+import com.sun.deploy.net.HttpRequest;
+import org.*;
+import org.apache.wink.common.internal.utils.MediaTypeUtils;
+import org.apache.wink.common.model.multipart.InMultiPart;
+import org.apache.wink.common.model.multipart.InPart;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -51,6 +46,9 @@ import com.google.gson.JsonObject;
 
 import oracle.jdbc.OraclePreparedStatement;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.Iterator;
 
@@ -64,14 +62,16 @@ public class ClockinResource {
 	private static final String PATH_ADDSHIFTNOTE 	= "clockin/addshiftnote";
 	private static final String PATH_TEST_AUTH      = "clockin/testauth";
 	private static final String PATH_JSON          	= "json";
-	private static final String LOGIN  				= "login";
+	private static final String LOGIN  				= "rest/login";
 	private static final String PATH_CONNECTIONS	= "connections/database";
 	private static final String PATH_DATABASE 		= "database";
 	private static final String PATH_DATABASE_EDIT	= "database/edit";
 	private static final String PATH_DATABASE_DELETE= "database/delete";
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
-	 
+	private static final String CALENDAR_STREAM 	= "calendar/load";
+	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
+
 	Gson gson = new Gson();
 
 
@@ -679,23 +679,102 @@ public class ClockinResource {
     }
 
 	@Path(CSV_PATH)
-	@GET
-	//@Produces(MediaType.APPLICATION_JSON)
-	//@Produces(MediaType.APPLICATION_JSON)
-	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken, String obj){
+	@POST
+	@Consumes(MediaTypeUtils.MULTIPART_FORM_DATA)
+	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+						InMultiPart csv_file, @FormParam("csv_type") String csv_type) throws IOException{
+
 		Status status = Response.Status.OK;
+//		InMultiPart csv_file
+		//WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
 
-		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
 
-		AuthenticateDbHandler auth = new AuthenticateDbHandler();
-		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+
+//		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+//		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+
+
+//		while (csv_file.hasNext()) {
+//			InPart part = csv_file.next();
+//			MultivaluedMap<String, String> heades = part.getHeaders();
+//			String CDHeader = heades.getFirst("Content-Disposition");
+//			is = part.getBody(InputStream.class, null);
+//			// use the input stream to read the part body
+//		}
+
+		if(csv_type.equals("employees")){
+			CSVHandler.importEmployees(csv_file,1);
+		}else if(csv_type.equals("shifts")){
+			CSVHandler.importShifts(csv_file,1);
+		}
+
 
 //		logged_in_employee.setNewPassword("password");
-		Employee foo = new Employee(1, "Josh Northrup");
-		foo.setNewPassword("password");
+//		Employee foo = new Employee(1, "Josh Northrup");
+//		foo.setNewPassword("password");
 
-		//CSVHandler.importEmployees(logged_in_employee);
+//		CSVHandler.importShifts(logged_in_employee);
 
 		return Response.status(status).build();
 	}
+
+	@Path(CALENDAR_STREAM)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response calendarStream(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+								   @QueryParam("start") String start, @QueryParam("end") String end, String obj){
+
+		Status status = Response.Status.OK;
+
+		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+//		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+		Employee logged_in_employee = Employee.getEmployeeById(8);
+
+		//TODO validate params, convert to sql timestamps
+
+		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee);
+
+		String jsonEvents = gson.toJson(events);
+		return Response.status(Response.Status.OK).entity(jsonEvents).build();
+	}
+
+//	@Path(CALENDAR_SHIFT_APPROVE)
+//	@POST
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	public Response calendarShiftApprove(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+//										 org.apache.sling.commons.json.JSONObject params, String obj){
+//
+//		Status status;
+//
+//		JSONObject
+//
+//		String start = params.getString("id");
+//
+//		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+//		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+////		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+//		Employee logged_in_employee = Employee.getEmployeeById(8);
+//
+//		Timestamp startTime = null;
+//		Timestamp endTime = null;
+//
+//		if(start != null){
+//			startTime = Timestamp.valueOf(start);
+//		}
+//		if(end != null){
+//			endTime = Timestamp.valueOf(end);
+//		}
+//
+//		boolean success = Shift.approveShift(logged_in_employee, Integer.parseInt(shift), startTime, endTime);
+//
+//		if(success){
+//			status = Response.Status.OK;
+//		}else{
+//			status = Response.Status.BAD_REQUEST;
+//		}
+//
+//		return Response.status(status).build();
+//	}
+
 }

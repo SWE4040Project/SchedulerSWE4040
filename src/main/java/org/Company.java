@@ -55,9 +55,11 @@ public class Company {
     private void saveNewCompany(String name){
         Connection con = null;
         try{
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-
-            con = DriverManager.getConnection("jdbc:oracle:thin:@"+DBVar.DEV_URL+":"+DBVar.DEV_PORT+":"+DBVar.DEV_SID,DBVar.DEV_USERNAME,DBVar.DEV_PASSWORD);
+            con = null;
+            try{
+                DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+                con = dbpool.getConnection();
+            }catch(Exception e){};
 
             OraclePreparedStatement stmt = (OraclePreparedStatement)con.prepareStatement("INSERT INTO companies(name) VALUES (?) RETURNING ID INTO ?");
             stmt.setString(1,name);
