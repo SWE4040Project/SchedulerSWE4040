@@ -9,13 +9,21 @@
 }
 
 .row.vertical-offset-100 {
-    margin-top: 100px;
+   margin-top: 100px;
 }
 
 .centered {
 	text-align: center;
 }
 
+.notifications {
+	vertical-align: middle;
+}
+
 #check-icon {
 	background-color: #00aa9a;
+}
+
+#errorMessage {
+	display: none;
 }

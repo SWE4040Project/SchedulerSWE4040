@@ -11,5 +11,7 @@ public class JsonVar {
 	public static final String EMPLOYEE_COMPANIES_ID 				= "employeeCompanyId";
 	public static final String MANAGER 		= "manager";
 	public static final String SUPER_ADMIN		= "superAdmin";
+	public static final String AUTHORIZATION = "Authorization";
 	public static final String XSRF_TOKEN		= "xsrfToken";
+	public static final String BEARER = "Bearer ";
 }

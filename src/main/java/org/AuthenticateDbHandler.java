@@ -18,15 +18,11 @@ import io.jsonwebtoken.SignatureException;
 import oracle.jdbc.OraclePreparedStatement;
 
 public class AuthenticateDbHandler {
-	
-	Connection con;
-    public AuthenticateDbHandler(){
-        con = null;
-        try{
-        	DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();       	
-        	con = dbpool.getConnection();
-        }catch(Exception e){        }
-    }
+
+	private DatabaseConnectionPool dbpool;
+	public AuthenticateDbHandler(){
+		dbpool = DatabaseConnectionPool.getInstance();
+	}
 	
 	/*
 	 * WARNING.
@@ -51,7 +47,9 @@ public class AuthenticateDbHandler {
     
     public Employee login(String username, String password){
     	OraclePreparedStatement stmt = null;
+    	Connection con = null;
     	try {
+			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"select "
             		+ "ID,"
@@ -81,7 +79,7 @@ public class AuthenticateDbHandler {
 				byte[] hashed_password = i.getBytes(iter++);
 				byte[] salt = i.getBytes(iter++);
 
-	        	System.out.println("db call: " + name);
+	        	System.out.println("AuthenticateDbHandler -> login -> employee name from sql query: " + name);
 
 	        	Employee emp = 
 	        			new Employee(
@@ -103,6 +101,7 @@ public class AuthenticateDbHandler {
         	e.printStackTrace();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return null;
     }
@@ -127,12 +126,13 @@ public class AuthenticateDbHandler {
 	    			.claim(JsonVar.MANAGER, emp.isManager())
 	    			.claim(JsonVar.SUPER_ADMIN, emp.isSuper_admin())
 	    			.claim(JsonVar.XSRF_TOKEN, xsrfToken)
-	    			.setIssuer("https://localhost:8443/Scheduler/")
+	    			.setIssuer("localhost")
 	    			.setExpiration( new Date(System.currentTimeMillis() + milliSecondOffset))
 	    			.setSubject("Employee")
 	    			.signWith(SignatureAlgorithm.HS512, signingKey)
 	    			.compact();
     	    //created
+			System.out.println("LOG: Login->createJWT->jwt=\n"+compactJws);
 	    	return new WebTokens(compactJws, xsrfToken);
     	} catch (Exception e) {
 
@@ -142,7 +142,7 @@ public class AuthenticateDbHandler {
     	return null;
     }
     
-    public boolean isAuth(WebTokens webTokens){
+    /*public boolean isAuth(WebTokens webTokens){
     	
     	try{
     		String compactJws = webTokens.getJsonWebToken();
@@ -173,12 +173,14 @@ public class AuthenticateDbHandler {
     		e.printStackTrace();
     	}
     	return false;
-    }
+    }*/
     
 
 	private String getSecretKey() {
 		OraclePreparedStatement stmt = null;
-    	try {
+		Connection con = null;
+		try {
+			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"select * from system");
             ResultSet i = stmt.executeQuery();
@@ -192,10 +194,61 @@ public class AuthenticateDbHandler {
         	e.printStackTrace();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
+			try{con.close();}catch(Exception ignore){}
         }
     	return null;
 	}
 
+	public Claims getClaims(WebTokens compactJws) {
+		String jsonToken = compactJws.getJsonWebToken();
+    	String encodedKey = getSecretKey();
+        
+    	try{
+	    	byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(encodedKey);
+	    	Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS512.getJcaName());
+	    	Jwts.parser().setSigningKey(signingKey).parseClaimsJws(jsonToken);
+	
+		    System.out.println("Log: trusted:  " + jsonToken);
+		    //This line will throw an exception if it is not a signed JWS (as expected)
+		    Claims claims = Jwts.parser()         
+		       .setSigningKey(signingKey)
+		       .parseClaimsJws(jsonToken).getBody();
+	
+			String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
+		
+			if( compactJws.getXsrfToken() == null || !compactJws.getXsrfToken().equals(xsrfToken) ){
+				throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+			}
+
+			return claims; //valid key
+	    }catch (SignatureException se) {
+    	    //don't trust the JWT!
+    		System.out.println("ERROR. Invalid signature on token -> " + se.getMessage());
+    	}catch (ExpiredJwtException eje){
+    		//don't trust the JWT!
+    		System.out.println("ERROR. Expired token -> " + eje.getMessage());
+    	}catch(IllegalArgumentException iae){
+    		//no JWT?
+    		System.out.println("ERROR. Expired token -> " + iae.getMessage());
+    	}catch(Exception e){
+	    	e.printStackTrace();
+	    }
+	   
+	    return null;
+	}
+	
+	public Employee employeeFromJWT(WebTokens tokens){
+		Claims claims = getClaims(tokens);
+		if(claims == null){
+			return null;
+		}
+		int emp_id = (Integer) claims.get(JsonVar.EMPLOYEE_ID);
+		Employee emp = Employee.getEmployeeById(emp_id);
+		
+		return emp;
+
+	}
+	
 	public int getInt(String key, WebTokens compactJws) {
 		String jsonToken = compactJws.getJsonWebToken();
     	String encodedKey = getSecretKey();
@@ -210,12 +263,12 @@ public class AuthenticateDbHandler {
 	       .parseClaimsJws(jsonToken).getBody();
 
 		String xsrfToken = (String) claims.get(JsonVar.XSRF_TOKEN);
-		if( !compactJws.getXsrfToken().equals(xsrfToken) ){
-			throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
-		}
 	    
 	    int result = -1;
 	    try{
+	    	if( !compactJws.getXsrfToken().equals(xsrfToken) ){
+				throw new SignatureException("Invalid XSRF Token: the JWT and the HTTP request tokens do NOT match");
+			}
 	    	result = (Integer) claims.get(key);
 	    }catch (SignatureException se) {
     	    //don't trust the JWT!
@@ -268,10 +321,4 @@ public class AuthenticateDbHandler {
 //    	return false;
 //	}
 
-	public Employee employeeFromJWT(WebTokens tokens){
-		int emp_id = getInt(JsonVar.EMPLOYEE_ID, tokens);
-		Employee emp = Employee.getEmployeeById(emp_id);
-		return emp;
-
-	}
 }

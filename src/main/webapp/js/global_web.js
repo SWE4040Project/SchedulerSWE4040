@@ -1,26 +1,27 @@
 var SCHEDULER_APP = {};
-SCHEDULER_APP.website = "https://localhost:8443";
-SCHEDULER_APP.base_url = SCHEDULER_APP.website + "/Scheduler";
+SCHEDULER_APP.website = location.protocol + "//" + location.host; //https://swe4040.herokuapp.com, http://localhost:8080
+SCHEDULER_APP.base_url = SCHEDULER_APP.website;
 SCHEDULER_APP.url_clockin = SCHEDULER_APP.base_url + "/rest/clockin";
-SCHEDULER_APP.xsrfTokenCookieName = "xsrfToken";
-SCHEDULER_APP.previousScreenCookieName = "previousScreen";
-SCHEDULER_APP.currentScreenCookieName = "currentScreen";
+SCHEDULER_APP.authorization = "Authorization";
+SCHEDULER_APP.xsrfTokenName = "xsrfToken";
 
 function globalweb_logout() {
 	//deletes the two cookies required for authentication
 	//clear cookies if exist
-	if(Cookies.get(SCHEDULER_APP.xsrfTokenCookieName)){
-		//IMPORTANT! when deleting a cookie, you must pass the exact same path 
+	sessionStorage.removeItem(SCHEDULER_APP.authorization);
+    sessionStorage.removeItem(SCHEDULER_APP.xsrfTokenName);
+
+	if(Cookies.get(SCHEDULER_APP.xsrfTokenName)){
+		//IMPORTANT! when deleting a cookie, you must pass the exact same path
 		// and domain attributes that was used to set the cookie
-		Cookies.remove(SCHEDULER_APP.xsrfTokenCookieName, { path: '/Scheduler' });
-		console.log("Cookie: removing " + SCHEDULER_APP.xsrfTokenCookieName);
+		Cookies.remove(SCHEDULER_APP.xsrfTokenName);
+		console.log("Cookie: removing " + SCHEDULER_APP.xsrfTokenName);
 	}
-	if(Cookies.get(SCHEDULER_APP.previousScreenCookieName)){
-		//IMPORTANT! when deleting a cookie, you must pass the exact same path 
-		// and domain attributes that was used to set the cookie
-		Cookies.remove(SCHEDULER_APP.previousScreenCookieName);
-		console.log("Cookie: removing " + SCHEDULER_APP.previousScreenCookieName);
-	}
+}
+
+function globalweb_employee_logout(){
+	globalweb_logout();
+	window.location.replace(SCHEDULER_APP.base_url + '/login.jsp');
 }
 
 function globalweb_displayErrorModal(title, message){

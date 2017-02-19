@@ -7,7 +7,7 @@ $(document).ready(function() {
 function addshiftnote(){
 	
 	//sending string
-	var shiftNote = "Brent's note";
+	var shiftNote = "";
 	//get from page
 	shiftNote = $("textarea#shift-notes").val();
 	console.log("Shift note: " + shiftNote);
@@ -15,7 +15,7 @@ function addshiftnote(){
 	var url = SCHEDULER_APP.url_clockin + '/addshiftnote';
 	//get params from page
 	var params = {
-			employeeId: 1,
+			employeeId: 6,
 			shiftId: 1,
 			locationId: 1,
 			workedNote: shiftNote
@@ -24,6 +24,10 @@ function addshiftnote(){
 	$.ajax({
 	    url: url,
 	    type: 'POST',
+        headers: {
+            'Authorization':sessionStorage.getItem(SCHEDULER_APP.authorization),
+            'xsrfToken': sessionStorage.getItem(SCHEDULER_APP.xsrfTokenName)
+        },
 	    data: JSON.stringify(params),
 	    contentType: 'application/json',
 	    dataType: 'json',

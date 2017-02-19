@@ -6,6 +6,9 @@ import oracle.sql.RAW;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+
+import org.Employee.Clock_State;
+
 import java.security.SecureRandom;
 import java.sql.Connection;
 
@@ -256,5 +259,4 @@ public class Employee {
 			return null;
 		}
 	}
-
 }

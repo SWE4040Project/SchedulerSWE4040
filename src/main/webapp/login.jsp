@@ -15,6 +15,15 @@
 				  <div class="panel-heading">
 				    <h3 class="panel-title">Clock In</h3>
 				  </div>
+				  	<div id="errorMessage">
+				  		<div class="panel panel-danger notifications">
+						  	<div class="panel-heading centered">
+							  	<div>
+				   	 				<i class="material-icons notifications">error</i> The information entered is not correct. Please try again.
+				   	 			</div>
+						   	</div>
+						</div>
+					</div>
 	              <div class="panel-body">
 	                  <form class="form-horizontal" method='POST'>
 						  <fieldset>
