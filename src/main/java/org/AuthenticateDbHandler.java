@@ -68,16 +68,15 @@ public class AuthenticateDbHandler {
             
             if(i.next()){
 	        	//parse result
-	            int iter = 1;
-	        	int id = Integer.parseInt(i.getString(iter++));
-	        	String name = i.getString(iter++);
-	        	String comp_emp_id = i.getString(iter++);
-	        	int comp_id = Integer.parseInt(i.getString(iter++));
-	        	boolean mang = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
-	        	boolean super_ad = ( Integer.parseInt(i.getString(iter++)) == 1 ) ? true : false;
-				int state = Integer.parseInt(i.getString(iter++));
-				byte[] hashed_password = i.getBytes(iter++);
-				byte[] salt = i.getBytes(iter++);
+	        	int id = Integer.parseInt(i.getString("ID"));
+	        	String name = i.getString("name");
+	        	String comp_emp_id = i.getString("COMPANIES_EMPLOYEE_ID");
+	        	int comp_id = Integer.parseInt(i.getString("COMPANIES_ID"));
+	        	boolean mang = ( Integer.parseInt(i.getString("MANAGER")) == 1 ) ? true : false;
+	        	boolean super_ad = ( Integer.parseInt(i.getString("SUPER_ADMIN")) == 1 ) ? true : false;
+				int state = Integer.parseInt(i.getString("STATE"));
+				byte[] hashed_password = i.getBytes("web_password");
+				byte[] salt = i.getBytes("salt");
 
 	        	System.out.println("AuthenticateDbHandler -> login -> employee name from sql query: " + name);
 
@@ -188,7 +187,7 @@ public class AuthenticateDbHandler {
             if(!i.next()){
             	return null;
             }
-        	String state = i.getString(1);
+        	String state = i.getString("secret_key");
         	return state;
         }catch(Exception e){
         	e.printStackTrace();

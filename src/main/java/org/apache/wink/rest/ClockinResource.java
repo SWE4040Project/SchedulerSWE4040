@@ -21,14 +21,21 @@ package org.apache.wink.rest;
  *******************************************************************************/
 
 
-import javax.servlet.http.Cookie;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.AuthenticateDbHandler;
+import org.*;
 import org.ClockDbHandler;
 import org.ClockinParameters;
 import org.DatabaseConnectionPool;
@@ -40,6 +47,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.apache.wink.common.model.multipart.InMultiPart;
+import org.apache.wink.common.internal.utils.MediaTypeUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -48,11 +57,13 @@ import com.google.gson.JsonObject;
 import oracle.jdbc.OraclePreparedStatement;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.IOException;
 
 @Path("/")
 public class ClockinResource {
-
+	
 	private static final String PATH_CLOCKIN 		= "clockin/clockin";
 	private static final String PATH_CLOCKOUT 		= "clockin/clockout";
 	private static final String PATH_BREAKIN 		= "clockin/breakin";
@@ -67,6 +78,9 @@ public class ClockinResource {
 	private static final String PATH_DATABASE_DELETE= "database/delete";
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
+	private static final String CALENDAR_STREAM 	= "calendar/load";
+	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
+	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
 
 	Gson gson = new Gson();
 
@@ -650,23 +664,121 @@ public class ClockinResource {
     }
 
 	@Path(CSV_PATH)
-	@GET
-	//@Produces(MediaType.APPLICATION_JSON)
-	//@Produces(MediaType.APPLICATION_JSON)
-	public Response csv(@CookieParam(JsonVar.AUTHORIZATION) String jsonWebToken, @CookieParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj){
+	@POST
+	@Consumes(MediaTypeUtils.MULTIPART_FORM_DATA)
+	public Response csv(@CookieParam(JsonVar.AUTHORIZATION) String jsonWebToken, @CookieParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+						InMultiPart csv_file, @FormParam("csv_type") String csv_type) throws IOException{
+
 		Status status = Response.Status.OK;
 
-		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
 
+		if(csv_type.equals("employees")){
+			CSVHandler.importEmployees(csv_file,1);
+		}else if(csv_type.equals("shifts")){
+			CSVHandler.importShifts(csv_file,1);
+		}
+
+
+		return Response.status(status).build();
+	}
+
+	@Path(CALENDAR_STREAM)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response calendarStream(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+								   @QueryParam("start") String start, @QueryParam("end") String end, @QueryParam("employee") String emp_id, String obj){
+
+		Status status = Response.Status.OK;
+
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(webTokens);
+
+		int id;
+		if(emp_id == null){
+			id = -1;
+		}else{
+			try {
+				id = Integer.parseInt(emp_id);
+			}catch (Exception e){
+				System.out.println("/calendar/load : Requested Employee Id not an integer");
+				id = -1;
+			}
+		}
+
+		//id = -1 return calendar events for the whole company, otherwise only the specified employee's shifts are returned
+		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id);
+
+		String jsonEvents = gson.toJson(events);
+		return Response.status(status).entity(jsonEvents).build();
+	}
+
+//	@Path(CALENDAR_SHIFT_APPROVE)
+//	@POST
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	public Response calendarShiftApprove(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+//										 org.apache.sling.commons.json.JSONObject params, String obj){
+//
+//		Status status;
+//
+//		JSONObject
+//
+//		String start = params.getString("id");
+//
+//		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+//		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+////		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+//		Employee logged_in_employee = Employee.getEmployeeById(8);
+//
+//		Timestamp startTime = null;
+//		Timestamp endTime = null;
+//
+//		if(start != null){
+//			startTime = Timestamp.valueOf(start);
+//		}
+//		if(end != null){
+//			endTime = Timestamp.valueOf(end);
+//		}
+//
+//		boolean success = Shift.approveShift(logged_in_employee, Integer.parseInt(shift), startTime, endTime);
+//
+//		if(success){
+//			status = Response.Status.OK;
+//		}else{
+//			status = Response.Status.BAD_REQUEST;
+//		}
+//
+//		return Response.status(status).build();
+//	}
+
+	@Path(EMPLOYEE_PROFILE)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response employeeProfile(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+								   @QueryParam("employee") String employee, String obj){
+
+		Status status = Response.Status.OK;
+
+		WebTokens tokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
 		AuthenticateDbHandler auth = new AuthenticateDbHandler();
 		Employee logged_in_employee = auth.employeeFromJWT(tokens);
 
-//		logged_in_employee.setNewPassword("password");
-		Employee foo = new Employee(1, "Josh Northrup");
-		foo.setNewPassword("password");
+		int id;
+		if(employee == null){
+			id = logged_in_employee.getId();
+		}else{
+			try {
+				id = Integer.parseInt(employee);
+			}catch (Exception e){
+				System.out.println("/employee/profile : Requested Employee Id not an integer");
+				id = -1;
+			}
+		}
 
-		//CSVHandler.importEmployees(logged_in_employee);
+		ArrayList<ArrayList<String>> profile = logged_in_employee.getProfile(id);
 
-		return Response.status(status).build();
+		String jsonProfile = gson.toJson(profile);
+
+		return Response.status(status).entity(jsonProfile).build();
 	}
 }
