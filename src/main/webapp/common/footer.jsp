@@ -2,7 +2,7 @@
    SCRIPTS 
          -->
 <!-- jQuery -->
-<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 <script src="./fileupload/js/vendor/jquery.ui.widget.js"></script>
 <script src="./fileupload/js/jquery.iframe-transport.js"></script>
 <script src="./fileupload/js/jquery.fileupload.js"></script>

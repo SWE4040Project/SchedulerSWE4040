@@ -53,10 +53,10 @@ public class CalendarEvent {
         this.editable = "true";
     }
 
-    public static CalendarEvent[] getEventsForRange(String start, String end, Employee emp){
+    public static CalendarEvent[] getEventsForRange(String start, String end, Employee emp, int emp_id){
         Timestamp startDate = timestampFromDateString(start);
         Timestamp endDate = timestampFromDateString(end);
-        CalendarEvent[] events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), -1);
+        CalendarEvent[] events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), emp_id);
         return  events;
     }
 
