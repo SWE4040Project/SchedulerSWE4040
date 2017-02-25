@@ -14,7 +14,7 @@
    <%@ include file="./common/navbar.jsp" %>
             
    <!-- Sidebar -->
-   <div id="sideMenu" class="col-sm-2" >
+   <div id="sideMenu" class="col-sm-2">
 	  <div class="sidebar-nav"><a href="#" data-toggle="collapse" data-target="#viewMenu">Views <i class="glyphicon glyphicon-chevron-down"></i></a>
 	    <ul class="nav nav-stacked collapse in" id="viewMenu">
 	        <li class="active"><a href="./admin.jsp"><i class="material-icons">developer_board</i> Database Manager</a></li>
