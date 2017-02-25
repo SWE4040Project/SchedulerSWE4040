@@ -12,7 +12,15 @@ $(document).ready(function() {
 
 function calendarInit(){
 	$('#calendar').fullCalendar({
-		events: "rest/calendar/load",
+		eventSources: [{
+				url : "rest/calendar/load",
+				type: "GET",
+				headers: {
+					'Authorization':sessionStorage.getItem(SCHEDULER_APP.authorization),
+					'xsrfToken': sessionStorage.getItem(SCHEDULER_APP.xsrfTokenName)
+				}
+			}
+		],
 		nextDayThreshold: "06:00:00",
 
 		eventRender: function (event, element) {
@@ -28,6 +36,10 @@ function calendarInit(){
 					$.ajax({
 						url: "rest/calendar/approve",
 						type: 'POST',
+						headers: {
+							'Authorization':sessionStorage.getItem(SCHEDULER_APP.authorization),
+							'xsrfToken': sessionStorage.getItem(SCHEDULER_APP.xsrfTokenName)
+						},
 						data: {
 							shift_id : document.getElementById("shiftId").textContent,
 							

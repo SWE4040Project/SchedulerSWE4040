@@ -28,11 +28,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.AuthenticateDbHandler;
+import org.*;
 import org.ClockDbHandler;
 import org.ClockinParameters;
 import org.DatabaseConnectionPool;
@@ -45,7 +48,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.apache.wink.common.model.multipart.InMultiPart;
-import org.apache.wink.common.model.multipart.InPart;
+import org.apache.wink.common.internal.utils.MediaTypeUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -56,6 +59,7 @@ import oracle.jdbc.OraclePreparedStatement;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.IOException;
 
 @Path("/")
 public class ClockinResource {
@@ -662,11 +666,10 @@ public class ClockinResource {
 	@Path(CSV_PATH)
 	@POST
 	@Consumes(MediaTypeUtils.MULTIPART_FORM_DATA)
-	public Response csv(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+	public Response csv(@CookieParam(JsonVar.AUTHORIZATION) String jsonWebToken, @CookieParam(JsonVar.XSRF_TOKEN) String xsrfToken,
 						InMultiPart csv_file, @FormParam("csv_type") String csv_type) throws IOException{
 
 		Status status = Response.Status.OK;
-
 
 
 		if(csv_type.equals("employees")){
@@ -682,27 +685,32 @@ public class ClockinResource {
 	@Path(CALENDAR_STREAM)
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response calendarStream(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+	public Response calendarStream(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
 								   @QueryParam("start") String start, @QueryParam("end") String end, @QueryParam("employee") String emp_id, String obj){
 
 		Status status = Response.Status.OK;
 
-		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
 		AuthenticateDbHandler auth = new AuthenticateDbHandler();
-//		Employee logged_in_employee = auth.employeeFromJWT(tokens);
-		Employee logged_in_employee = Employee.getEmployeeById(8);
+		Employee logged_in_employee = auth.employeeFromJWT(webTokens);
 
 		int id;
-		if(emp_id != null && emp_id.equals("true")){
-			id = logged_in_employee.getId();
-		}else{
+		if(emp_id == null){
 			id = -1;
+		}else{
+			try {
+				id = Integer.parseInt(emp_id);
+			}catch (Exception e){
+				System.out.println("/calendar/load : Requested Employee Id not an integer");
+				id = -1;
+			}
 		}
 
+		//id = -1 return calendar events for the whole company, otherwise only the specified employee's shifts are returned
 		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id);
 
 		String jsonEvents = gson.toJson(events);
-		return Response.status(Response.Status.OK).entity(jsonEvents).build();
+		return Response.status(status).entity(jsonEvents).build();
 	}
 
 //	@Path(CALENDAR_SHIFT_APPROVE)
@@ -746,15 +754,14 @@ public class ClockinResource {
 	@Path(EMPLOYEE_PROFILE)
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response employeeProfile(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+	public Response employeeProfile(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
 								   @QueryParam("employee") String employee, String obj){
 
 		Status status = Response.Status.OK;
 
-		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+		WebTokens tokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
 		AuthenticateDbHandler auth = new AuthenticateDbHandler();
-//		Employee logged_in_employee = auth.employeeFromJWT(tokens);
-		Employee logged_in_employee = Employee.getEmployeeById(8);
+		Employee logged_in_employee = auth.employeeFromJWT(tokens);
 
 		int id;
 		if(employee == null){
@@ -772,6 +779,6 @@ public class ClockinResource {
 
 		String jsonProfile = gson.toJson(profile);
 
-		return Response.status(Response.Status.OK).entity(jsonProfile).build();
+		return Response.status(status).entity(jsonProfile).build();
 	}
 }
