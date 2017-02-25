@@ -10,7 +10,7 @@ function clockin(){
 	var url = SCHEDULER_APP.url_clockin + '/clockin';
 	//get params from page
 	var params = {
-			employeeId: 6,
+			employeeId: 1,
 			shiftId: 1,
 			locationId: 1
 		}

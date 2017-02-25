@@ -3,8 +3,12 @@ import oracle.jdbc.OraclePreparedStatement;
 import oracle.sql.TIMESTAMP;
 import org.DatabaseConnectionPool;
 import org.Employee.Clock_State;
+import org.apache.wink.rest.ArrayPOJO;
 
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class ClockDbHandler {
 
@@ -19,7 +23,7 @@ public class ClockDbHandler {
 		try {
 			con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"select emp.state from employees emp join scheduled_shifts shfts "
+            		"select emp.state from scheduled_shifts shfts left join employees emp "
             		+ "on emp.ID = shfts.EMPLOYEES_ID "
             		+ "where emp.ID = ? and shfts.ID = ? "
             		+ "and real_start_time is not null");
@@ -41,6 +45,7 @@ public class ClockDbHandler {
             	}
             }
         }catch(Exception e){
+			e.printStackTrace();
         }finally{
         	try{stmt.close();}catch(Exception ignore){}
 			try{con.close();}catch(Exception ignore){}

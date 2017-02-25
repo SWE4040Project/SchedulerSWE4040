@@ -78,6 +78,8 @@ public class ClockinResource {
 	private static final String PATH_DATABASE_DELETE= "database/delete";
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
+	private static final String PATH_RECENT_SHIFT	= "shifts/recent";
+
 	private static final String CALENDAR_STREAM 	= "calendar/load";
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
 	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
