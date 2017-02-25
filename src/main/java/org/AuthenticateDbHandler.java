@@ -61,7 +61,7 @@ public class AuthenticateDbHandler {
 					+ "STATE, "
 					+ "web_password, "
 					+ "salt "
-            		+ "from employees where companies_employee_id = ?");
+            		+ "from employees where COMPANIES_EMPLOYEE_ID = ?");
 
             stmt.setString(1, username);
             ResultSet i = stmt.executeQuery();

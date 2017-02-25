@@ -6,6 +6,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.ArrayList;
 
 /**
@@ -56,6 +59,7 @@ public class Shift {
         this.approved_start_time = approved_start_time;
         this.approved_end_time = approved_end_time;
         this.available = available;
+        this.length = length;
         this.worked_notes = worked_notes;
     }
 
@@ -159,6 +163,56 @@ public class Shift {
         }
 
         return success;
+    }
+
+    public static Shift getRecentShiftById(int id){
+        OraclePreparedStatement stmt = null;
+        Connection con = null;
+        Shift recentShift = null;
+
+        Calendar cal = Calendar.getInstance();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        cal.add(Calendar.HOUR, -12);
+        String yesterdayTimeStamp = dateFormat.format(cal.getTime());
+        System.out.println("TIMESTAMP: "+yesterdayTimeStamp);
+
+        try{
+            DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+            con = dbpool.getConnection();
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "select * from SCHEDULED_SHIFTS where EMPLOYEES_ID = ? and SCHEDULED_START_TIME >= ?");
+            stmt.setInt(1, id);
+            stmt.setString(2, yesterdayTimeStamp);
+            ResultSet i = stmt.executeQuery();
+
+            if(i.next()){
+                boolean available;
+                if(i.getInt(10) == 1){
+                    available = true;
+                }else{
+                    available = false;
+                }
+                recentShift = new Shift(
+                        Integer.parseInt(i.getString(1)), //ID
+                        Integer.parseInt(i.getString(2)), //employee ID
+                        Integer.parseInt(i.getString(3)), //location_ID
+                        i.getTimestamp(4), //scheduled_start
+                        i.getTimestamp(5), //scheduled_end
+                        i.getTimestamp(6), //real_start
+                        i.getTimestamp(7), //real_end
+                        i.getTimestamp(8), //approved_start
+                        i.getTimestamp(9), //approved_end
+                        available,   //available
+                        i.getString(11) //worked_notes
+                );
+                System.out.println("shift db call: employee ID:" + id);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            try{stmt.close();}catch(Exception ignore){}
+            return recentShift;
+        }
     }
 
     public static Shift getShiftById(int id){
