@@ -165,7 +165,7 @@ public class Shift {
         return success;
     }
 
-    public static Shift getRecentShiftById(int id){
+    public static Shift getRecentShiftById(int id,int company_id){
         OraclePreparedStatement stmt = null;
         Connection con = null;
         Shift recentShift = null;
@@ -180,30 +180,26 @@ public class Shift {
             DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
             con = dbpool.getConnection();
             stmt = (OraclePreparedStatement) con.prepareStatement(
-                    "select * from SCHEDULED_SHIFTS where EMPLOYEES_ID = ? and SCHEDULED_START_TIME >= ?");
-            stmt.setInt(1, id);
+                    "select * from SCHEDULED_SHIFTS where COMPANY_ID = ? and SCHEDULED_START_TIME >= ? and EMPLOYEES_ID = ?");
+            stmt.setInt(1,company_id);
+            stmt.setInt(3, id);
             stmt.setString(2, yesterdayTimeStamp);
             ResultSet i = stmt.executeQuery();
 
             if(i.next()){
-                boolean available;
-                if(i.getInt(10) == 1){
-                    available = true;
-                }else{
-                    available = false;
-                }
                 recentShift = new Shift(
-                        Integer.parseInt(i.getString(1)), //ID
-                        Integer.parseInt(i.getString(2)), //employee ID
-                        Integer.parseInt(i.getString(3)), //location_ID
-                        i.getTimestamp(4), //scheduled_start
-                        i.getTimestamp(5), //scheduled_end
-                        i.getTimestamp(6), //real_start
-                        i.getTimestamp(7), //real_end
-                        i.getTimestamp(8), //approved_start
-                        i.getTimestamp(9), //approved_end
-                        available,   //available
-                        i.getString(11) //worked_notes
+                        i.getInt("ID"), //ID
+                        i.getInt("employees_ID"), //employee ID
+                        i.getInt("location_ID"), //location_ID
+                        i.getInt("company_id"), //location_ID
+                        i.getTimestamp("scheduled_start_time"), //scheduled_start
+                        i.getTimestamp("scheduled_end_time"), //scheduled_end
+                        i.getTimestamp("real_start_time"), //real_start
+                        i.getTimestamp("real_end_time"), //real_end
+                        i.getTimestamp("approved_start_time"), //approved_start
+                        i.getTimestamp("approved_end_time"), //approved_end
+                        i.getBoolean("available"),   //available
+                        i.getString("worked_notes") //worked_notes
                 );
                 System.out.println("shift db call: employee ID:" + id);
             }
