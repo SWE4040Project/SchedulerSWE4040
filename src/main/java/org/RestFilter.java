@@ -35,7 +35,7 @@ public class RestFilter implements Filter {
 
     WebTokens webTokens = new WebTokens(jsonWebToken, xsrfToken);
     Employee emp = new AuthenticateDbHandler().employeeFromJWT(webTokens);
-    
+
     if(jsonWebToken == null || xsrfToken == null){
     	//not logged in. Redirect to login
         System.out.println("jsonWebToken and/or xsrfToken null. " + jsonWebToken + " : " + xsrfToken);
@@ -55,7 +55,7 @@ public class RestFilter implements Filter {
 		
 		//Pass employee object to request
 		request.setAttribute("employeeObject", emp);
-		request.getRequestDispatcher(reqUrl).forward(request, response); 
+		request.getRequestDispatcher(reqUrl).forward(request, response);
     }
 	
   }

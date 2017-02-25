@@ -21,13 +21,14 @@ package org.apache.wink.rest;
  *******************************************************************************/
 
 
-import javax.servlet.http.Cookie;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.AuthenticateDbHandler;
 import org.ClockDbHandler;
 import org.ClockinParameters;
@@ -47,6 +48,7 @@ import com.google.gson.JsonObject;
 
 import oracle.jdbc.OraclePreparedStatement;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.Iterator;
 
@@ -58,15 +60,17 @@ public class ClockinResource {
 	private static final String PATH_BREAKIN 		= "clockin/breakin";
 	private static final String PATH_BREAKOUT 		= "clockin/breakout";
 	private static final String PATH_ADDSHIFTNOTE 	= "clockin/addshiftnote";
+	private static final String PATH_EMPLOYEE_STATE = "clockin/employee/state";
+	private static final String LOGIN  				= "login";
 	private static final String PATH_TEST_AUTH      = "clockin/testauth";
 	private static final String PATH_JSON          	= "json";
-	private static final String LOGIN  				= "login";
 	private static final String PATH_CONNECTIONS	= "connections/database";
 	private static final String PATH_DATABASE 		= "database";
 	private static final String PATH_DATABASE_EDIT	= "database/edit";
 	private static final String PATH_DATABASE_DELETE= "database/delete";
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
+	private static final String PATH_SEND_PUSH_NOTIFICATION = "send_push";
 
 	Gson gson = new Gson();
 
@@ -231,6 +235,28 @@ public class ClockinResource {
 		return Response.status(status).entity(result).build();
     }
 
+
+	@Path(PATH_EMPLOYEE_STATE)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getEmployeeState(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
+
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
+		Employee emp = new AuthenticateDbHandler().employeeFromJWT(webTokens);
+
+		if(emp == null){
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+
+
+
+		String result = "{\"State\":\""+ emp.getEmployeeClockState() +"\"}";
+
+		return Response.status(Status.OK).entity(result).build();
+	}
+
     @Path(LOGIN)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -242,13 +268,14 @@ public class ClockinResource {
     	LoginParameters params = gson.fromJson(obj, LoginParameters.class);
 
     	if(params.getPassword() == null || params.getPassword().length() <= 0){
-    		status = Response.Status.FORBIDDEN;
+    		status = Status.UNAUTHORIZED;
+			return Response.status(status).entity("{\"Login\":\"Password not valid length\"}").header("Content-Type", "application/json").build();
     	}
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	Employee emp = auth.login(params.getUsername(), params.getPassword());
     	if(emp == null){
-    		status = Response.Status.FORBIDDEN;
-    		return Response.status(status).header("Content-Type", "application/json").build();
+    		status = Response.Status.UNAUTHORIZED;
+    		return Response.status(status).entity("{\"Login\":\"No employee found\"}").header("Content-Type", "application/json").build();
     	}
 
     	//create jwt
@@ -668,5 +695,45 @@ public class ClockinResource {
 		//CSVHandler.importEmployees(logged_in_employee);
 
 		return Response.status(status).build();
+	}
+
+	@Path(PATH_SEND_PUSH_NOTIFICATION)
+	@GET
+	public Response sendPushNotification(@QueryParam("token") String jsonWebToken, String obj){
+
+		String device_token = "f3Uh2OhulW4:APA91bFSajNrfBoiuZo8tXHVmW6sUehxrJa6-WRZm25h9FrjcKuxgxDye1q2jO0xIUHa9HsDH2SL0K71SQR6MSwfpSGY2ffQ3kVMMGHOwDG672XNZF4wcdW8liMu--n3Y0DyQ6fOvZ1l";
+		try{
+			sendAndroidNotification(device_token,"Server message","Server Title");
+		}catch(IOException ioe){
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(ioe.getMessage()).build();
+		}
+
+		return Response.status(Response.Status.OK).build();
+	}
+
+	private void sendAndroidNotification(String deviceToken,String message,String title) throws IOException {
+
+		String ANDROID_NOTIFICATION_URL = "https://fcm.googleapis.com/fcm/send";
+		String ANDROID_NOTIFICATION_KEY = "AAAAwKa8oDw:APA91bFYMGsO_XTkVrGqjLiG5PrfgnnE6e9VWhtaWCp60Xbu-GP0ZJmiBQ-MUCam61Ho-FmyBRwZg71n9jTlyhnvwk_Zah29EADYTbELTH9IRxVtYSCz4yspeGBspIETGUoPl4eTXobI";
+
+		OkHttpClient client = new OkHttpClient();
+		okhttp3.MediaType mediaType = okhttp3.MediaType.parse("application/json");
+		JSONObject obj = new JSONObject();
+		JSONObject msgObject = new JSONObject();
+		msgObject.put("body", message);
+		msgObject.put("title", title);
+		//msgObject.put("icon", ANDROID_NOTIFICATION_ICON);
+		//msgObject.put("color", ANDROID_NOTIFICATION_COLOR);
+
+		obj.put("to", deviceToken);
+		obj.put("notification",msgObject);
+
+		RequestBody body = RequestBody.create(mediaType, obj.toString());
+		Request request = new Request.Builder().url(ANDROID_NOTIFICATION_URL).post(body)
+				.addHeader("content-type", "application/json")
+				.addHeader("authorization", "key="+ANDROID_NOTIFICATION_KEY).build();
+
+		okhttp3.Response response = client.newCall(request).execute();
+
 	}
 }
