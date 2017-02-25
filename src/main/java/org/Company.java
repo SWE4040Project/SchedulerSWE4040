@@ -69,7 +69,7 @@ public class Company {
                 ResultSet rs = stmt.getReturnResultSet();
                 rs.next();
                 this.name = name;
-                id = rs.getInt(1);
+                id = rs.getInt("ID");
             }
         }catch(Exception e){
         }finally{
@@ -94,11 +94,10 @@ public class Company {
             ResultSet i = stmt.executeQuery();
 
             if(i.next()){
-                int iter = 1;
 
                 comp = new Company(
-                        Integer.parseInt(i.getString(iter++)), 	//id
-                        i.getString(iter++)//name
+                        Integer.parseInt(i.getString("ID")), 	//id
+                        i.getString("name")//name
                 );
 
                 System.out.println("db call: company ID:" + id);

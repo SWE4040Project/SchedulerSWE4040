@@ -12,6 +12,7 @@ import java.sql.Connection;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -114,6 +115,32 @@ public class Employee {
 
 	public void setCurrent_worked_shift_id(int current_worked_shift_id) {
 		this.current_worked_shift_id = current_worked_shift_id;
+	}
+
+	public ArrayList<ArrayList<String>> getProfile(int id){
+		ArrayList<ArrayList<String>> profile = new ArrayList<ArrayList<String>>();
+
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement(
+					"select emp.id, emp.name,  FROM employees WHERE ID = ?");
+			stmt.setInt(1, id);
+			ResultSet i = stmt.executeQuery();
+
+			if(i.next()){
+				//ArrayList<String>
+
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();}catch(Exception ignore){}
+		}
+
+		return profile;
 	}
 
 	public static Employee getEmployeeById(int id){

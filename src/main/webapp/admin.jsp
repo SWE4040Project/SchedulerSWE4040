@@ -14,7 +14,7 @@
    <%@ include file="./common/navbar.jsp" %>
             
    <!-- Sidebar -->
-   <div id="sideMenu" class="col-sm-2">
+   <div id="sideMenu" class="col-sm-2" >
 	  <div class="sidebar-nav"><a href="#" data-toggle="collapse" data-target="#viewMenu">Views <i class="glyphicon glyphicon-chevron-down"></i></a>
 	    <ul class="nav nav-stacked collapse in" id="viewMenu">
 	        <li class="active"><a href="./admin.jsp"><i class="material-icons">developer_board</i> Database Manager</a></li>
@@ -59,17 +59,33 @@
           <tbody></tbody>
         </table>
     </div>
-    <div id="calendar"></div>
+    <br><br><br><br><br>
+    <div id="calendar" align="center"></div>
 
-    <div id="csv_upload" hidden>
+    <br><br><br><br><br>
+    <div style="display: flex">
+        <div id="csv_upload" style="width: 400px">
+            <h1>Employee CSV Upload</h1>
+            <form id="csv_upload_form" method="post" action="rest/csv_upload" enctype="multipart/form-data">
+                <input id="fileupload" type="file" name="file" size="40" accept="text/csv">
+                <%--<input type="radio" name="csv_type" value="employees" checked> Employees<br>--%>
+                <%--<input type="radio" name="csv_type" value="shifts"> Shifts<br>--%>
+                <input type="submit" value="Upload">
+            </form>
+        </div>
 
-        <form id="csv_upload_form" method="post" action="rest/csv_upload" enctype="multipart/form-data">
-            <input id="fileupload" type="file" name="file" size="40" accept="text/csv">
-            <input type="radio" name="csv_type" value="employees" checked> Employees<br>
-            <input type="radio" name="csv_type" value="shifts"> Shifts<br>
-            <input type="submit" value="Upload">
-        </form>
+        <div id="csv_upload_shift" style="flex-grow: 1">
+            <h1>Shift CSV Upload</h1>
+            <form id="csv_upload_form_shift" method="post" action="rest/csv_upload" enctype="multipart/form-data">
+                <input id="fileupload" type="file" name="file" size="40" accept="text/csv">
+                <%--<input type="radio" name="csv_type" value="employees" checked> Employees<br>--%>
+                <%--<input type="radio" name="csv_type" value="shifts"> Shifts<br>--%>
+                <input type="submit" value="Upload">
+            </form>
+        </div>
     </div>
+
+    <br><br><br><br><br>
 </div>
 <!-- /.mainContent -->
 

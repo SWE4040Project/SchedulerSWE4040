@@ -50,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 @Path("/")
@@ -71,6 +72,7 @@ public class ClockinResource {
 	private static final String CSV_PATH      		= "csv_upload";
 	private static final String CALENDAR_STREAM 	= "calendar/load";
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
+	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
 
 	Gson gson = new Gson();
 
@@ -722,7 +724,7 @@ public class ClockinResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response calendarStream(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
-								   @QueryParam("start") String start, @QueryParam("end") String end, String obj){
+								   @QueryParam("start") String start, @QueryParam("end") String end, @QueryParam("employee") String emp_id, String obj){
 
 		Status status = Response.Status.OK;
 
@@ -731,9 +733,14 @@ public class ClockinResource {
 //		Employee logged_in_employee = auth.employeeFromJWT(tokens);
 		Employee logged_in_employee = Employee.getEmployeeById(8);
 
-		//TODO validate params, convert to sql timestamps
+		int id;
+		if(emp_id != null && emp_id.equals("true")){
+			id = logged_in_employee.getId();
+		}else{
+			id = -1;
+		}
 
-		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee);
+		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id);
 
 		String jsonEvents = gson.toJson(events);
 		return Response.status(Response.Status.OK).entity(jsonEvents).build();
@@ -777,4 +784,35 @@ public class ClockinResource {
 //		return Response.status(status).build();
 //	}
 
+	@Path(EMPLOYEE_PROFILE)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response employeeProfile(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+								   @QueryParam("employee") String employee, String obj){
+
+		Status status = Response.Status.OK;
+
+		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+//		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+		Employee logged_in_employee = Employee.getEmployeeById(8);
+
+		int id;
+		if(employee == null){
+			id = logged_in_employee.getId();
+		}else{
+			try {
+				id = Integer.parseInt(employee);
+			}catch (Exception e){
+				System.out.println("/employee/profile : Requested Employee Id not an integer");
+				id = -1;
+			}
+		}
+
+		ArrayList<ArrayList<String>> profile = logged_in_employee.getProfile(id);
+
+		String jsonProfile = gson.toJson(profile);
+
+		return Response.status(Response.Status.OK).entity(jsonProfile).build();
+	}
 }

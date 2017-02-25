@@ -7,12 +7,13 @@ $(document).ready(function() {
 		add_row();
 	});
 	
-	//load_data('employees');
+	load_data('employees');
 });
 
 function calendarInit(){
 	$('#calendar').fullCalendar({
 		events: "rest/calendar/load",
+		nextDayThreshold: "06:00:00",
 
 		eventRender: function (event, element) {
 			element.attr('href', 'javascript:void(0);');
