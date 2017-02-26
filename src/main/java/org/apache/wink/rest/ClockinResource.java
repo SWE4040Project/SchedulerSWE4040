@@ -79,7 +79,6 @@ public class ClockinResource {
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
 	private static final String PATH_RECENT_SHIFT	= "shifts/recent";
-
 	private static final String CALENDAR_STREAM 	= "calendar/load";
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
 	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
@@ -777,7 +776,7 @@ public class ClockinResource {
 			}
 		}
 
-		ArrayList<ArrayList<String>> profile = logged_in_employee.getProfile(id);
+		EmployeeProfile profile = EmployeeProfile.getProfile(logged_in_employee, id);
 
 		String jsonProfile = gson.toJson(profile);
 

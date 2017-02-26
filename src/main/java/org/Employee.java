@@ -120,30 +120,28 @@ public class Employee {
 		this.current_worked_shift_id = current_worked_shift_id;
 	}
 
-	public ArrayList<ArrayList<String>> getProfile(int id){
-		ArrayList<ArrayList<String>> profile = new ArrayList<ArrayList<String>>();
-
+	public boolean atSameCompany(int id){
 		OraclePreparedStatement stmt = null;
 		Connection con = null;
+		boolean worksWith = false;
 		try{
 			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
 			con = dbpool.getConnection();
 			stmt = (OraclePreparedStatement) con.prepareStatement(
-					"select emp.id, emp.name,  FROM employees WHERE ID = ?");
+					"select id FROM employees WHERE ID = ? and COMPANIES_ID = ?");
 			stmt.setInt(1, id);
+			stmt.setInt(2, getCompany_id());
 			ResultSet i = stmt.executeQuery();
 
 			if(i.next()){
-				//ArrayList<String>
-
+				worksWith = true;
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally{
 			try{stmt.close();}catch(Exception ignore){}
+			return worksWith;
 		}
-
-		return profile;
 	}
 
 	public static Employee getEmployeeById(int id){
