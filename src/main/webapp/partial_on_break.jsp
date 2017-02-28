@@ -7,7 +7,7 @@
   	</div>
 
 	<%@ page import="org.Employee" %>
-	<%@ page import= "org.Shift" %>
+	<%@ page import="org.Shift" %>
 	<%@ page import="java.text.SimpleDateFormat" %>
 	<%@ page import="java.sql.Timestamp" %>
 
@@ -34,7 +34,7 @@
 
 
 	%>
-  	
+
   	<div class="list-group">
  			<div class="list-group-item">
     	<div class="row-action-primary">

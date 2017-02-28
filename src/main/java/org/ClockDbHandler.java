@@ -135,10 +135,11 @@ public class ClockDbHandler {
         	System.out.println("Log: Clock_State =" + state);
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"INSERT INTO breaks(start_time, scheduled_shift_ID)"
-            		+ "VALUES (?,?)");
+            		"INSERT INTO breaks(start_time, scheduled_shift_ID, company_id)"
+            		+ "VALUES (?,?,?)");
             stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
             stmt.setInt(2, emp.getCurrent_worked_shift_id());
+            stmt.setInt(3,emp.getCompany_id());
             int i = stmt.executeUpdate();
             if (i <= 0){
             	return "Update of breaks failed => employeeId "+employee_id+" and shiftId "+shift_id;
