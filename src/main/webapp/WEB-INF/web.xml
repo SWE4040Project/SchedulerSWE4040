@@ -98,7 +98,11 @@
 		<servlet-name>restSdkService</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
-	
+
+	<listener>
+		<listener-class>org.listener.PushNotificationListener</listener-class>
+	</listener>
+
 	<welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

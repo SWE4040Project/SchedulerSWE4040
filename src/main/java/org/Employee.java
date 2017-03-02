@@ -31,6 +31,7 @@ public class Employee {
     private boolean super_admin;
     private int current_worked_shift_id;
     private int emp_clock_state;
+	private String push_notification_token;
     public enum Clock_State {
     	NOT_CLOCKED_IN, CLOCKED_IN, BREAK, SHIFT_COMPLETE    	
     };
@@ -115,6 +116,9 @@ public class Employee {
 	public int getCurrent_worked_shift_id() {
 		return current_worked_shift_id;
 	}
+
+	public String getPush_notification_token() { return push_notification_token; }
+	public void setPush_notification_token(String push_notification_token) { this.push_notification_token = push_notification_token; }
 
 	public void setCurrent_worked_shift_id(int current_worked_shift_id) {
 		this.current_worked_shift_id = current_worked_shift_id;
@@ -288,6 +292,29 @@ public class Employee {
 			System.out.println(e.getMessage());
 			System.out.println(e.getStackTrace());
 			return null;
+		}
+	}
+
+	public static String setEmployeePushNotificationToken(int id, String token){
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement("UPDATE EMPLOYEES SET push_token = ? WHERE ID = ?");
+
+			stmt.setString(1, token);
+			stmt.setInt(2,id);
+
+			stmt.execute();
+			return "";
+
+		}catch(Exception e){
+			System.out.println("ERROR setEmployeePushNotificationToken: " + e.getMessage());
+			return e.getMessage();
+		}finally{
+			try{stmt.close();
+			}catch(Exception ignore){}
 		}
 	}
 }

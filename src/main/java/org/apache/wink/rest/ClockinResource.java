@@ -57,7 +57,6 @@ import com.google.gson.JsonObject;
 import oracle.jdbc.OraclePreparedStatement;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.IOException;
 
@@ -82,6 +81,7 @@ public class ClockinResource {
 	private static final String CALENDAR_STREAM 	= "calendar/load";
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
 	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
+	private static final String PATH_EMPLOYEE_PUSHNOTE = "employee/pushnote/edit";
 
 	Gson gson = new Gson();
 
@@ -782,4 +782,37 @@ public class ClockinResource {
 
 		return Response.status(status).entity(jsonProfile).build();
 	}
+
+	@Path(PATH_EMPLOYEE_PUSHNOTE)
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response setEmployeePushNotificationToken(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+									String obj){
+
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+
+		Status status = Response.Status.OK;
+
+		Employee employee = gson.fromJson(obj, Employee.class);
+		employee.setId(-1); //clear employeeId if one is passed.
+		//parse employeeId from jsonWebToken
+		int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
+		if(empId < 0){
+			Response.status(Status.BAD_REQUEST).build();
+		}
+
+		String error = Employee.setEmployeePushNotificationToken(empId, employee.getPush_notification_token());
+
+		String result = "{\"Status\":\"Employee "+ empId +" has added or modified their push notification token.\"}";
+
+		if( error.length() > 0 ){
+			status = Response.Status.INTERNAL_SERVER_ERROR;
+			result = "{\"Status\":\""+ error +"\"}";
+		}
+
+		return Response.status(status).entity(result).build();
+	}
+
 }
