@@ -21,15 +21,21 @@ package org.apache.wink.rest;
  *******************************************************************************/
 
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.AuthenticateDbHandler;
+import org.*;
 import org.ClockDbHandler;
 import org.ClockinParameters;
 import org.DatabaseConnectionPool;
@@ -37,10 +43,13 @@ import org.Employee;
 import org.JsonVar;
 import org.LoginParameters;
 import org.WebTokens;
+import org.email.EmailClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.apache.wink.common.model.multipart.InMultiPart;
+import org.apache.wink.common.internal.utils.MediaTypeUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -48,29 +57,32 @@ import com.google.gson.JsonObject;
 
 import oracle.jdbc.OraclePreparedStatement;
 
-import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.IOException;
 
 @Path("/")
 public class ClockinResource {
-
+	
 	private static final String PATH_CLOCKIN 		= "clockin/clockin";
 	private static final String PATH_CLOCKOUT 		= "clockin/clockout";
 	private static final String PATH_BREAKIN 		= "clockin/breakin";
 	private static final String PATH_BREAKOUT 		= "clockin/breakout";
 	private static final String PATH_ADDSHIFTNOTE 	= "clockin/addshiftnote";
-	private static final String PATH_EMPLOYEE_STATE = "clockin/employee/state";
-	private static final String LOGIN  				= "login";
 	private static final String PATH_TEST_AUTH      = "clockin/testauth";
 	private static final String PATH_JSON          	= "json";
+	private static final String LOGIN  				= "login";
 	private static final String PATH_CONNECTIONS	= "connections/database";
 	private static final String PATH_DATABASE 		= "database";
 	private static final String PATH_DATABASE_EDIT	= "database/edit";
 	private static final String PATH_DATABASE_DELETE= "database/delete";
 	private static final String PATH_DATABASE_ADD 	= "database/add";
 	private static final String CSV_PATH      		= "csv_upload";
-	private static final String PATH_SEND_PUSH_NOTIFICATION = "send_push";
+	private static final String PATH_RECENT_SHIFT	= "shifts/recent";
+	private static final String CALENDAR_STREAM 	= "calendar/load";
+	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
+	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
 
 	Gson gson = new Gson();
 
@@ -235,28 +247,6 @@ public class ClockinResource {
 		return Response.status(status).entity(result).build();
     }
 
-
-	@Path(PATH_EMPLOYEE_STATE)
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getEmployeeState(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj) {
-
-		AuthenticateDbHandler auth = new AuthenticateDbHandler();
-		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
-
-		Employee emp = new AuthenticateDbHandler().employeeFromJWT(webTokens);
-
-		if(emp == null){
-			return Response.status(Status.BAD_REQUEST).build();
-		}
-
-
-
-		String result = "{\"State\":\""+ emp.getEmployeeClockState() +"\"}";
-
-		return Response.status(Status.OK).entity(result).build();
-	}
-
     @Path(LOGIN)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -268,14 +258,13 @@ public class ClockinResource {
     	LoginParameters params = gson.fromJson(obj, LoginParameters.class);
 
     	if(params.getPassword() == null || params.getPassword().length() <= 0){
-    		status = Status.UNAUTHORIZED;
-			return Response.status(status).entity("{\"Login\":\"Password not valid length\"}").header("Content-Type", "application/json").build();
+    		status = Response.Status.FORBIDDEN;
     	}
     	AuthenticateDbHandler auth = new AuthenticateDbHandler();
     	Employee emp = auth.login(params.getUsername(), params.getPassword());
     	if(emp == null){
-    		status = Response.Status.UNAUTHORIZED;
-    		return Response.status(status).entity("{\"Login\":\"No employee found\"}").header("Content-Type", "application/json").build();
+    		status = Response.Status.FORBIDDEN;
+    		return Response.status(status).header("Content-Type", "application/json").build();
     	}
 
     	//create jwt
@@ -677,63 +666,144 @@ public class ClockinResource {
     }
 
 	@Path(CSV_PATH)
-	@GET
-	//@Produces(MediaType.APPLICATION_JSON)
-	//@Produces(MediaType.APPLICATION_JSON)
-	public Response csv(@CookieParam(JsonVar.AUTHORIZATION) String jsonWebToken, @CookieParam(JsonVar.XSRF_TOKEN) String xsrfToken, String obj){
+	@POST
+	@Consumes(MediaTypeUtils.MULTIPART_FORM_DATA)
+	public Response csv(@CookieParam(JsonVar.AUTHORIZATION) String jsonWebToken, @CookieParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+						InMultiPart csv_file, @FormParam("csv_type") String csv_type) throws IOException{
+
 		Status status = Response.Status.OK;
 
-		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
 
-		AuthenticateDbHandler auth = new AuthenticateDbHandler();
-		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+		if(csv_type.equals("employees")){
+			CSVHandler.importEmployees(csv_file,1);
+		}else if(csv_type.equals("shifts")){
+			CSVHandler.importShifts(csv_file,1);
+		}
 
-//		logged_in_employee.setNewPassword("password");
-		Employee foo = new Employee(1, "Josh Northrup");
-		foo.setNewPassword("password");
-
-		//CSVHandler.importEmployees(logged_in_employee);
 
 		return Response.status(status).build();
 	}
 
-	@Path(PATH_SEND_PUSH_NOTIFICATION)
+	@Path(CALENDAR_STREAM)
 	@GET
-	public Response sendPushNotification(@QueryParam("token") String jsonWebToken, String obj){
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response calendarStream(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+								   @QueryParam("start") String start, @QueryParam("end") String end, @QueryParam("employee") String emp_id, String obj){
 
-		String device_token = "f3Uh2OhulW4:APA91bFSajNrfBoiuZo8tXHVmW6sUehxrJa6-WRZm25h9FrjcKuxgxDye1q2jO0xIUHa9HsDH2SL0K71SQR6MSwfpSGY2ffQ3kVMMGHOwDG672XNZF4wcdW8liMu--n3Y0DyQ6fOvZ1l";
-		try{
-			sendAndroidNotification(device_token,"Server message","Server Title");
-		}catch(IOException ioe){
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(ioe.getMessage()).build();
+		Status status = Response.Status.OK;
+
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(webTokens);
+
+		int id;
+		if(emp_id == null){
+			id = -1;
+		}else{
+			try {
+				id = Integer.parseInt(emp_id);
+			}catch (Exception e){
+				System.out.println("/calendar/load : Requested Employee Id not an integer");
+				id = -1;
+			}
 		}
 
-		return Response.status(Response.Status.OK).build();
+		//id = -1 return calendar events for the whole company, otherwise only the specified employee's shifts are returned
+		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id);
+
+		String jsonEvents = gson.toJson(events);
+		return Response.status(status).entity(jsonEvents).build();
 	}
 
-	private void sendAndroidNotification(String deviceToken,String message,String title) throws IOException {
+//	@Path(CALENDAR_SHIFT_APPROVE)
+//	@POST
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	public Response calendarShiftApprove(@CookieParam("Authorization") String jsonWebToken, @CookieParam("xsrfToken") String xsrfToken,
+//										 org.apache.sling.commons.json.JSONObject params, String obj){
+//
+//		Status status;
+//
+//		JSONObject
+//
+//		String start = params.getString("id");
+//
+//		WebTokens tokens = new WebTokens(jsonWebToken, xsrfToken);
+//		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+////		Employee logged_in_employee = auth.employeeFromJWT(tokens);
+//		Employee logged_in_employee = Employee.getEmployeeById(8);
+//
+//		Timestamp startTime = null;
+//		Timestamp endTime = null;
+//
+//		if(start != null){
+//			startTime = Timestamp.valueOf(start);
+//		}
+//		if(end != null){
+//			endTime = Timestamp.valueOf(end);
+//		}
+//
+//		boolean success = Shift.approveShift(logged_in_employee, Integer.parseInt(shift), startTime, endTime);
+//
+//		if(success){
+//			status = Response.Status.OK;
+//		}else{
+//			status = Response.Status.BAD_REQUEST;
+//		}
+//
+//		return Response.status(status).build();
+//	}
 
-		String ANDROID_NOTIFICATION_URL = "https://fcm.googleapis.com/fcm/send";
-		String ANDROID_NOTIFICATION_KEY = "AAAAwKa8oDw:APA91bFYMGsO_XTkVrGqjLiG5PrfgnnE6e9VWhtaWCp60Xbu-GP0ZJmiBQ-MUCam61Ho-FmyBRwZg71n9jTlyhnvwk_Zah29EADYTbELTH9IRxVtYSCz4yspeGBspIETGUoPl4eTXobI";
+	@Path(EMPLOYEE_PROFILE)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response employeeProfile(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+								   @QueryParam("employee") String employee, String obj){
 
-		OkHttpClient client = new OkHttpClient();
-		okhttp3.MediaType mediaType = okhttp3.MediaType.parse("application/json");
-		JSONObject obj = new JSONObject();
-		JSONObject msgObject = new JSONObject();
-		msgObject.put("body", message);
-		msgObject.put("title", title);
-		//msgObject.put("icon", ANDROID_NOTIFICATION_ICON);
-		//msgObject.put("color", ANDROID_NOTIFICATION_COLOR);
+		Status status = Response.Status.OK;
 
-		obj.put("to", deviceToken);
-		obj.put("notification",msgObject);
+		WebTokens tokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(tokens);
 
-		RequestBody body = RequestBody.create(mediaType, obj.toString());
-		Request request = new Request.Builder().url(ANDROID_NOTIFICATION_URL).post(body)
-				.addHeader("content-type", "application/json")
-				.addHeader("authorization", "key="+ANDROID_NOTIFICATION_KEY).build();
+		int id;
+		if(employee == null){
+			id = logged_in_employee.getId();
+		}else{
+			try {
+				id = Integer.parseInt(employee);
+			}catch (Exception e){
+				System.out.println("/employee/profile : Requested Employee Id not an integer");
+				id = -1;
+			}
+		}
 
-		okhttp3.Response response = client.newCall(request).execute();
+		EmployeeProfile profile = EmployeeProfile.getProfile(logged_in_employee, id);
 
+		String jsonProfile = gson.toJson(profile);
+
+		return Response.status(status).entity(jsonProfile).build();
+	}
+
+	@Path("email/send")
+	@GET
+	public Response sendEmailFromClient(){
+
+		Status status = Response.Status.OK;
+
+		try{
+			EmailClient.sendEmail(
+					"test@sendgrid.com",
+					"Hello World",
+					"brent.simmons@unb.ca",
+					"Testing out SendGrid's email capability",
+					"dadf",
+					"adfasf,",
+					"asdfsdf");
+		}catch(Exception e){
+			System.out.println("Error sending email: " + e.getMessage());
+			status = Status.BAD_REQUEST;
+		}
+
+		return Response.status(status).build();
 	}
 }

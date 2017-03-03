@@ -1,6 +1,7 @@
 package org;
 
 import oracle.jdbc.OraclePreparedStatement;
+import oracle.jdbc.OracleTypes;
 import oracle.sql.RAW;
 
 import javax.crypto.SecretKey;
@@ -14,6 +15,7 @@ import java.sql.Connection;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -118,6 +120,30 @@ public class Employee {
 		this.current_worked_shift_id = current_worked_shift_id;
 	}
 
+	public boolean atSameCompany(int id){
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		boolean worksWith = false;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement(
+					"select id FROM employees WHERE ID = ? and COMPANIES_ID = ?");
+			stmt.setInt(1, id);
+			stmt.setInt(2, getCompany_id());
+			ResultSet i = stmt.executeQuery();
+
+			if(i.next()){
+				worksWith = true;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();}catch(Exception ignore){}
+			return worksWith;
+		}
+	}
+
 	public static Employee getEmployeeById(int id){
 		OraclePreparedStatement stmt = null;
 		Connection con = null;
@@ -187,7 +213,7 @@ public class Employee {
 			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
 			con = dbpool.getConnection();
 			stmt = (OraclePreparedStatement) con.prepareStatement(
-					"INSERT  INTO EMPLOYEES (name, companies_employee_id, companies_id, manager, super_admin, state, web_password) VALUES (?,?,?,?,?,?,?)");
+					"INSERT  INTO EMPLOYEES (name, companies_employee_id, companies_id, manager, super_admin, state) VALUES (?,?,?,?,?,?) RETURNING ID INTO ?");
 
 			if(state<0 || state>2){state=0;}
 
@@ -197,12 +223,17 @@ public class Employee {
 			stmt.setBoolean(4, manager);
 			stmt.setBoolean(5, false);
 			stmt.setInt(6,state);
-			stmt.setString(7,web_password);
+			stmt.registerReturnParameter(7, OracleTypes.NUMBER);
 
 			int i = stmt.executeUpdate();
+			if(i>0){
+				ResultSet rs = stmt.getReturnResultSet();
+				rs.next();
+				Employee emp = Employee.getEmployeeById(rs.getInt(1));
+				emp.setNewPassword(web_password);
+			}
 
 			success = true;
-
 
 		}catch(Exception e){
 			e.printStackTrace();

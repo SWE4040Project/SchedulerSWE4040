@@ -16,7 +16,10 @@
 
 <!-- Dropdown.js -->
 <link href="https://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
-
 <link rel="stylesheet" type="text/css" href="./css/clock_css.css">
+
+<%--Calendar--%>
+<link rel='stylesheet' href='calendar/fullcalendar.css' />
+<link rel='stylesheet' href='calendar/lib/cupertino/jquery-ui.min.css'/>
 
 <%@include file="modal.jsp" %>
