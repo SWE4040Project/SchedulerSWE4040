@@ -43,6 +43,8 @@ import org.Employee;
 import org.JsonVar;
 import org.LoginParameters;
 import org.WebTokens;
+import org.email.EmailClient;
+import org.email.EmailPOJO;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -82,6 +84,7 @@ public class ClockinResource {
 	private static final String CALENDAR_STREAM 	= "calendar/load";
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
 	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
+	private static final String PATH_EMAIL = "email/send";
 
 	Gson gson = new Gson();
 
@@ -781,5 +784,28 @@ public class ClockinResource {
 		String jsonProfile = gson.toJson(profile);
 
 		return Response.status(status).entity(jsonProfile).build();
+	}
+
+	@Path(PATH_EMAIL)
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response sendEmailFromClient(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+										String obj){
+
+		Status status = Response.Status.OK;
+
+		try{
+			EmailPOJO email = gson.fromJson(obj, EmailPOJO.class);
+
+			EmailClient.sendEmail(
+					email.toAddress,
+					email.subject,
+					email.message);
+		}catch(Exception e){
+			System.out.println("Error sending email: " + e.getMessage());
+			status = Status.BAD_REQUEST;
+		}
+
+		return Response.status(status).build();
 	}
 }
