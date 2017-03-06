@@ -305,4 +305,142 @@ public class Shift {
             Integer.valueOf(dateVals[5]));
         return Timestamp.valueOf(dateTime);
     }
+
+    public static void initializeDemonstrationScheduleForNewEmployee(Employee emp) throws Exception {
+
+        OraclePreparedStatement stmt = null;
+        Connection con = null;
+        boolean success = false;
+        try{
+            DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+            con = dbpool.getConnection();
+
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "SELECT * FROM EMPLOYEES where COMPANIES_EMPLOYEE_ID = ?");
+            stmt.setString(1,emp.getCompany_employee_id());
+            ResultSet rs = stmt.executeQuery();
+            int emp_id = -1;
+            if(rs.next()){
+                emp_id = rs.getInt("id");
+            }
+
+            final int LOCATION = 2;
+            final int COMPANY = 3;
+
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "INSERT ALL " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
+                            "VALUES (?,?,?,?,?) " +
+                            "SELECT 1 FROM DUAL "); //junk query statement as necessary for INSERT ALL syntax
+
+            //current shift
+            stmt.setInt(1, emp_id);
+            stmt.setInt(2, LOCATION);
+            stmt.setInt(3, COMPANY);
+            stmt.setTimestamp(4, getTimestampAlteredByDayAmount(0));
+            stmt.setTimestamp(5, getTimestampAlteredByDayAmountAndSetHour(0,18));
+
+            //one day past
+            stmt.setInt(6, emp_id);
+            stmt.setInt(7, LOCATION);
+            stmt.setInt(8, COMPANY);
+            stmt.setTimestamp(9, getTimestampAlteredByDayAmountAndSetHour(-1,9));
+            stmt.setTimestamp(10, getTimestampAlteredByDayAmountAndSetHour(-1,17));
+
+            //two day past
+            stmt.setInt(11, emp_id);
+            stmt.setInt(12, LOCATION);
+            stmt.setInt(13, COMPANY);
+            stmt.setTimestamp(14, getTimestampAlteredByDayAmountAndSetHour(-2,7));
+            stmt.setTimestamp(15, getTimestampAlteredByDayAmountAndSetHour(-2,15));
+
+            //three day past
+            stmt.setInt(16, emp_id);
+            stmt.setInt(17, LOCATION);
+            stmt.setInt(18, COMPANY);
+            stmt.setTimestamp(19, getTimestampAlteredByDayAmountAndSetHour(-3,9));
+            stmt.setTimestamp(20, getTimestampAlteredByDayAmountAndSetHour(-3,17));
+
+            //four day past
+            stmt.setInt(21, emp_id);
+            stmt.setInt(22, LOCATION);
+            stmt.setInt(23, COMPANY);
+            stmt.setTimestamp(24, getTimestampAlteredByDayAmountAndSetHour(-4,12));
+            stmt.setTimestamp(25, getTimestampAlteredByDayAmountAndSetHour(-4,18));
+
+            //one day future
+            stmt.setInt(26, emp_id);
+            stmt.setInt(27, LOCATION);
+            stmt.setInt(28, COMPANY);
+            stmt.setTimestamp(29, getTimestampAlteredByDayAmountAndSetHour(1,8));
+            stmt.setTimestamp(30, getTimestampAlteredByDayAmountAndSetHour(1,16));
+
+            //two day future
+            stmt.setInt(31, emp_id);
+            stmt.setInt(32, LOCATION);
+            stmt.setInt(33, COMPANY);
+            stmt.setTimestamp(34, getTimestampAlteredByDayAmountAndSetHour(2,8));
+            stmt.setTimestamp(35, getTimestampAlteredByDayAmountAndSetHour(2,16));
+
+            //three day future
+            stmt.setInt(36, emp_id);
+            stmt.setInt(37, LOCATION);
+            stmt.setInt(38, COMPANY);
+            stmt.setTimestamp(39, getTimestampAlteredByDayAmountAndSetHour(3,8));
+            stmt.setTimestamp(40, getTimestampAlteredByDayAmountAndSetHour(3,16));
+
+            //five day future
+            stmt.setInt(41, emp_id);
+            stmt.setInt(42, LOCATION);
+            stmt.setInt(43, COMPANY);
+            stmt.setTimestamp(44, getTimestampAlteredByDayAmountAndSetHour(5,12));
+            stmt.setTimestamp(45, getTimestampAlteredByDayAmountAndSetHour(5,20));
+
+            int i = stmt.executeUpdate();
+
+            success = true;
+
+        }catch(Exception e){
+            e.printStackTrace();
+            throw e;
+        }finally{
+            try{stmt.close();}catch(Exception ignore){}
+            try{con.close();}catch(Exception ignore){}
+        }
+    }
+
+    private static Timestamp getTimestampAlteredByDayAmount(int days){
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, days);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        String currentTimeStampString = dateFormat.format(cal.getTime());
+        return timestampFromDateString(currentTimeStampString);
+    }
+
+    private static Timestamp getTimestampAlteredByDayAmountAndSetHour(int days, int hour){
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, days);
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        String currentTimeStampString = dateFormat.format(cal.getTime());
+        return timestampFromDateString(currentTimeStampString);
+    }
 }

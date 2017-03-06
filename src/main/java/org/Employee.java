@@ -7,14 +7,13 @@ import oracle.sql.RAW;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.xml.transform.Result;
 
 import org.Employee.Clock_State;
 
 import java.security.SecureRandom;
-import java.sql.Connection;
+import java.sql.*;
 
-import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -26,12 +25,14 @@ public class Employee {
     private int id;
     private String name;
     private String company_employee_id;
+	private String password;
     private int company_id;
     private boolean manager;
     private boolean super_admin;
     private int current_worked_shift_id;
     private int emp_clock_state;
-    public enum Clock_State {
+
+	public enum Clock_State {
     	NOT_CLOCKED_IN, CLOCKED_IN, BREAK, SHIFT_COMPLETE    	
     };
     
@@ -115,6 +116,8 @@ public class Employee {
 	public int getCurrent_worked_shift_id() {
 		return current_worked_shift_id;
 	}
+
+	public String getPassword() { return password; }
 
 	public void setCurrent_worked_shift_id(int current_worked_shift_id) {
 		this.current_worked_shift_id = current_worked_shift_id;
@@ -244,6 +247,66 @@ public class Employee {
 		}
 
 	}
+
+	public static boolean validateUniqueEmployeeUsername(String name) {
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		try{
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement(
+					"SELECT * FROM employees WHERE companies_employee_id = ?");
+
+			stmt.setString(1,name);
+
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()){
+				return false;
+			}
+			return true;
+
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			try{stmt.close();
+			}catch(Exception ignore){}
+		}
+		return false;
+	}
+
+	public static void createEmployee(Employee emp) throws SQLException {
+
+		OraclePreparedStatement stmt = null;
+		Connection con = null;
+		try{
+			byte salt[] = emp.newSalt();
+			char char_password[] = emp.getPassword().toCharArray();
+			byte[] hash = emp.hashFunction(salt, char_password);
+
+			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+			con = dbpool.getConnection();
+			stmt = (OraclePreparedStatement) con.prepareStatement(
+					"INSERT INTO \"SYSTEM\".\"EMPLOYEES\"(NAME, COMPANIES_EMPLOYEE_ID, COMPANIES_ID, MANAGER, SUPER_ADMIN, STATE, WEB_PASSWORD, SALT) " +
+							"VALUES (?, ?, ?, '1', '0', '0', ?, ?)");
+
+			stmt.setString(1,emp.getName());
+			stmt.setString(2,emp.getCompany_employee_id());
+			stmt.setInt(3,emp.getCompany_id());
+			stmt.setRAW(4,new RAW(hash));
+			stmt.setRAW(5,new RAW(salt));
+
+			stmt.execute();
+
+		}catch(SQLIntegrityConstraintViolationException icve){
+			throw icve;
+		}catch(SQLException sqle){
+			throw sqle;
+		}finally{
+			try{stmt.close();
+			}catch(Exception ignore){}
+		}
+	}
+
 
 	private void setPassword(byte[] salt, byte[] pass){
 		OraclePreparedStatement stmt = null;

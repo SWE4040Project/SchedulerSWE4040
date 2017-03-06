@@ -20,10 +20,20 @@
 	vertical-align: middle;
 }
 
+.row-view {
+    float: right;
+    display: inline-block;
+    padding-right: 30px;
+}
+
 #check-icon {
 	background-color: #00aa9a;
 }
 
 #errorMessage {
 	display: none;
+}
+
+#successMessage {
+    display: none;
 }

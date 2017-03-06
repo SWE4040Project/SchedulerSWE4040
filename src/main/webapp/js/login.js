@@ -51,3 +51,39 @@ function login(){
     
     req.then( success, err );
 }
+
+function createNewEmployee(){
+
+    var url = SCHEDULER_APP.base_url + '/rest/create/employee';
+
+    // get the form data
+    // there are many ways to get this data using jQuery (you can use the class or id also)
+    var params = {
+        'name'    : $('input[name=username]').val(),
+        'password'    : $('input[name=password]').val(),
+    };
+
+    // process the form
+    var req = $.ajax({
+        type        : 'POST', // define the type of HTTP verb we want to use (POST for our form)
+        url         : url, // the url where we want to POST
+        data        : JSON.stringify(params), // our data object
+        contentType : 'application/json',
+        dataType    : 'json',
+        encode      : true,
+        async		: true
+    })
+
+    var success = function(data) {
+        console.log("Employee created.");
+
+        $('#successMessage').show();
+        $('#errorMessage').hide();
+    };
+    var err = function(err) {
+        $('#successMessage').hide();
+        $('#errorMessage').show();
+    };
+
+    req.then( success, err );
+}

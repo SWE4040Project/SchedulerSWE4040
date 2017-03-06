@@ -43,7 +43,6 @@ import org.Employee;
 import org.JsonVar;
 import org.LoginParameters;
 import org.WebTokens;
-import org.email.EmailClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -58,7 +57,6 @@ import com.google.gson.JsonObject;
 import oracle.jdbc.OraclePreparedStatement;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.IOException;
 
@@ -83,6 +81,7 @@ public class ClockinResource {
 	private static final String CALENDAR_STREAM 	= "calendar/load";
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
 	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
+	private static final String PATH_CREATE_EMPLOYEE = "create/employee";
 
 	Gson gson = new Gson();
 
@@ -784,26 +783,43 @@ public class ClockinResource {
 		return Response.status(status).entity(jsonProfile).build();
 	}
 
-	@Path("email/send")
-	@GET
-	public Response sendEmailFromClient(){
+	@Path(PATH_CREATE_EMPLOYEE)
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response createEmployee(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken,
+								   @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+								   String obj) {
 
-		Status status = Response.Status.OK;
+		Employee emp = gson.fromJson(obj, Employee.class);
 
-		try{
-			EmailClient.sendEmail(
-					"test@sendgrid.com",
-					"Hello World",
-					"brent.simmons@unb.ca",
-					"Testing out SendGrid's email capability",
-					"dadf",
-					"adfasf,",
-					"asdfsdf");
-		}catch(Exception e){
-			System.out.println("Error sending email: " + e.getMessage());
-			status = Status.BAD_REQUEST;
+		// Note: this is a static create for Symposium
+		// 1. check validity of employee username
+		// 2. create static employee
+
+		if( !Employee.validateUniqueEmployeeUsername(emp.getName())){
+			return Response.status(Status.NOT_ACCEPTABLE).entity(
+					"{\"Error\": \" Username already exists. Please choose a new one. \"}"
+			).build();
+		}
+		emp.setName(emp.getName());
+		emp.setCompany_employee_id(emp.getName());
+		emp.setCompany_id(3);
+
+		if(emp.getPassword() != null) {
+			try{
+				Employee.createEmployee(emp);
+				Shift.initializeDemonstrationScheduleForNewEmployee(emp);
+			}catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Status.NOT_ACCEPTABLE).entity(
+						"{\"Error\": \""+e.getMessage()+"\"}"
+				).build();
+			}
 		}
 
-		return Response.status(status).build();
+		return Response.status(Response.Status.OK).entity(
+				"{\"Success\": \"Ok\"}"
+				).build();
 	}
 }

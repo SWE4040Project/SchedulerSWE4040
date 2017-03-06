@@ -24,6 +24,15 @@
 						   	</div>
 						</div>
 					</div>
+					<div id="successMessage">
+						<div class="panel panel-success notifications">
+							<div class="panel-heading centered">
+								<div>
+									<i class="material-icons notifications">check</i> New User successfully created.
+								</div>
+							</div>
+						</div>
+					</div>
 	              <div class="panel-body">
 	                  <form class="form-horizontal" method='POST'>
 						  <fieldset>
@@ -40,8 +49,9 @@
 						      </div>
 						    </div>
 						    <div class="form-group">
-						      <div class="col-md-offset-8">
-						        <button type="submit" class="btn btn-primary">Login</button>
+						      <div class="row-view">
+							    <input type="button" class="btn btn-secondary" onclick="createNewEmployee()" value="Create New User">
+							    <button type="submit" class="btn btn-primary">Login</button>
 						      </div>
 						    </div>
 						  </fieldset>
