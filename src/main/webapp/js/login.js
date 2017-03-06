@@ -46,7 +46,9 @@ function login(){
     	window.location.replace(SCHEDULER_APP.base_url + '/index.jsp');
     };
 	var err = function(err) {
-		$('#errorMessage').show();
+        $('#successMessage').hide();
+        $('#errorMessage').show();
+        $('#duplicateUserMessage').hide();
     };
     
     req.then( success, err );
@@ -62,6 +64,13 @@ function createNewEmployee(){
         'name'    : $('input[name=username]').val(),
         'password'    : $('input[name=password]').val(),
     };
+
+    if($('input[name=username]').val() == "" || $('input[name=password]').val() == ""){
+        $('#successMessage').hide();
+        $('#errorMessage').show();
+        $('#duplicateUserMessage').hide();
+        return;
+    }
 
     // process the form
     var req = $.ajax({
@@ -79,10 +88,18 @@ function createNewEmployee(){
 
         $('#successMessage').show();
         $('#errorMessage').hide();
-    };
+        $('#duplicateUserMessage').hide();
+    }
     var err = function(err) {
-        $('#successMessage').hide();
-        $('#errorMessage').show();
+        if(err.status == 406) {
+            $('#successMessage').hide();
+            $('#errorMessage').hide();
+            $('#duplicateUserMessage').show();
+        }else{
+            $('#successMessage').hide();
+            $('#errorMessage').show();
+            $('#duplicateUserMessage').hide();
+        }
     };
 
     req.then( success, err );

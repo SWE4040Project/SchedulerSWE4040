@@ -33,6 +33,15 @@
 							</div>
 						</div>
 					</div>
+				<div id="duplicateUserMessage">
+					<div class="panel panel-danger notifications">
+						<div class="panel-heading centered">
+							<div>
+								<i class="material-icons notifications">error</i> User name already exists. Please try a new one.
+							</div>
+						</div>
+					</div>
+				</div>
 	              <div class="panel-body">
 	                  <form class="form-horizontal" method='POST'>
 						  <fieldset>

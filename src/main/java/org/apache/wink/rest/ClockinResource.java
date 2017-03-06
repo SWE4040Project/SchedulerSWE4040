@@ -812,7 +812,7 @@ public class ClockinResource {
 				Shift.initializeDemonstrationScheduleForNewEmployee(emp);
 			}catch (Exception e) {
 				e.printStackTrace();
-				return Response.status(Status.NOT_ACCEPTABLE).entity(
+				return Response.status(Status.BAD_REQUEST).entity(
 						"{\"Error\": \""+e.getMessage()+"\"}"
 				).build();
 			}
