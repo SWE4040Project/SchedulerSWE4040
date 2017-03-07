@@ -11,29 +11,34 @@
 	<%@ page import="java.text.SimpleDateFormat" %>
 	<%@ page import="java.sql.Timestamp" %>
 
-	<%
-		Employee emp = (Employee) request.getAttribute("employeeObject");
+    <%
+        Employee emp = (Employee) request.getAttribute("employeeObject");
+        Timestamp rsTimestamp = null;
+        Timestamp reTimestamp = null;
+        String sTime = "--";
+        String eTime = "--";
+        String sDate = "--";
+        String currentTime = (new SimpleDateFormat("h:mm a")).format(new java.util.Date());
+        String rsTime = "--";
+        String reTime = "--";
+        Shift shift = Shift.getRecentShiftById(emp.getId(),emp.getCompany_id());
+        if(shift != null) {
+            sTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_start_time().getTime());
+            eTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_end_time().getTime());
+            sDate = (new SimpleDateFormat("EEEE, MMM dd")).format(shift.getScheduled_start_time().getTime());
+            rsTimestamp = shift.getReal_start_time();
+            reTimestamp = shift.getReal_end_time();
+        }
 
-		Shift shift = Shift.getRecentShiftById(emp.getId(),emp.getCompany_id());
-		String sTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_start_time().getTime());
-		String eTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_end_time().getTime());
-		String sDate = (new SimpleDateFormat("EEEE, MMM dd")).format(shift.getScheduled_start_time().getTime());
-		String currentTime = (new SimpleDateFormat("h:mm a")).format(new java.util.Date());
-		Timestamp rsTimestamp = shift.getReal_start_time();
-		Timestamp reTimestamp = shift.getReal_end_time();
-		String rsTime = "--";
-		String reTime = "--";
-		if(rsTimestamp != null){
-			rsTime = (new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_start_time().getTime());
-		}
-		if(reTimestamp != null){
-			reTime = (new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_end_time().getTime());
-		}
+        if(rsTimestamp != null){
+            rsTime = (new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_start_time().getTime());
+        }
+        if(reTimestamp != null){
+            reTime = (new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_end_time().getTime());
+        }
 
-		int progress = 20;
-
-
-	%>
+        int progress = 20;
+    %>
   	
   	<div class="list-group">
  			<div class="list-group-item">
@@ -53,7 +58,7 @@
   	<div class="list-group-item">
     	<div class="col-md-9">
     		<p id="scheduled_shift" class="list-group-item-text">Shift: <%= sTime %> - <%= eTime %></p>
-      		<p id="scheduled_date" class="list-group-item-text"> <%=sDate%></p>
+      		<p id="scheduled_date" class="list-group-item-text"><%=sDate%></p>
     	</div>
     	<div class="col-md-3">
     		<b id="current_time"><%=currentTime%></b>

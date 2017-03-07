@@ -24,16 +24,23 @@
 					<%@ page import="org.ClockDbHandler" %>
 					<%
 						Employee emp = (Employee) request.getAttribute("employeeObject");
-
-						Shift shift = Shift.getRecentShiftById(emp.getId(),emp.getCompany_id());
-						String sTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_start_time().getTime());
-						String eTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_end_time().getTime());
-						String sDate = (new SimpleDateFormat("EEEE, MMM dd")).format(shift.getScheduled_start_time().getTime());
+						Timestamp rsTimestamp = null;
+						Timestamp reTimestamp = null;
+						String sTime = "--";
+						String eTime = "--";
+						String sDate = "--";
 						String currentTime = (new SimpleDateFormat("h:mm a")).format(new java.util.Date());
-						Timestamp rsTimestamp = shift.getReal_start_time();
-						Timestamp reTimestamp = shift.getReal_end_time();
 						String rsTime = "--";
 						String reTime = "--";
+						Shift shift = Shift.getRecentShiftById(emp.getId(),emp.getCompany_id());
+						if(shift != null) {
+							sTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_start_time().getTime());
+							eTime = (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_end_time().getTime());
+							sDate = (new SimpleDateFormat("EEEE, MMM dd")).format(shift.getScheduled_start_time().getTime());
+							rsTimestamp = shift.getReal_start_time();
+							reTimestamp = shift.getReal_end_time();
+						}
+
 						if(rsTimestamp != null){
 							rsTime = (new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_start_time().getTime());
 						}
@@ -42,8 +49,6 @@
 						}
 
 						int progress = 20;
-
-
 					%>
 
 					<%!
