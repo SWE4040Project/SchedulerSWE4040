@@ -254,7 +254,7 @@ public class ClockDbHandler {
     		Employee emp = Employee.getEmployeeById(employee_id);
 			emp.setCurrent_worked_shift_id(shift_id);
     		int state = emp.getEmployeeClockState();
-        	if(state != 1){
+        	if(state == 0){
         		return "Error with employee state => clock_state "+state+", employeeId "+employee_id+", shiftId "+shift_id;
         	}
         	System.out.println("Log: Clock_State =" + state);

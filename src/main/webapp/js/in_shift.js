@@ -49,6 +49,7 @@ function getCurrentShift(){
             document.getElementById("scheduled_shift").innerHTML = data.scheduled_start +" - "+ data.scheduled_end;
             document.getElementById("scheduled_date").innerHTML = data.scheduled_day;
             document.getElementById("current_time").innerHTML = data.current_time;
+            document.getElementById("shift_notes").innerHTML = data.shift_notes;
             $('.progress-bar').css('width', data.progress+'%');
 
             $('#shift_id').show();

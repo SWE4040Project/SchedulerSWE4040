@@ -843,6 +843,12 @@ public class ClockinResource {
 
 		double progress_percentage = getProgressPercentage(shift);
 
+		JSONObject json = getJsonObject(shift, progress_percentage);
+
+		return Response.status(Response.Status.OK).entity(json.toString()).header("Content-Type", "application/json").build();
+	}
+
+	private JSONObject getJsonObject(Shift shift, double progress_percentage) {
 		JSONObject json = new JSONObject();
 		json.put("actual_start","--");
 		json.put("actual_end","--");
@@ -867,9 +873,14 @@ public class ClockinResource {
 			json.put("scheduled_end", (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_end_time().getTime()));
 			System.out.println("Shift scheduled end: " + shift.getScheduled_end_time());
 		}
+		if (shift.getWorked_notes() != null) {
+			json.put("shift_notes", shift.getWorked_notes());
+			System.out.println("Shift shift_notes: " + shift.getWorked_notes());
+		}else{
+			json.put("shift_notes", "No notes");
+		}
 		json.put("current_time", (new SimpleDateFormat("h:mm a")).format(new java.util.Date()));
-
-		return Response.status(Response.Status.OK).entity(json.toString()).header("Content-Type", "application/json").build();
+		return json;
 	}
 
 	private double getProgressPercentage(Shift shift) {

@@ -48,17 +48,8 @@
 					</div>
 				</div>
 			</div>
+			<div class="list-group-separator"></div>
 		</div> <!-- shift_id end -->
-		<div class="list-group-separator"></div>
-		<div class="list-group-item">
-			<div class="row-action-primary">
-				<i class="material-icons">note</i>
-			</div>
-			<div class="row-content">
-				<h4 class="list-group-item-heading">Notes</h4>
-				<p class="list-group-item-text">Enter Shift Notes Here.</p>
-			</div>
-		</div>
  	</div>
  	<div id="errorMessage">
 		<div class="panel panel-danger notifications">

@@ -9,17 +9,14 @@ function addshiftnote(){
 	//sending string
 	var shiftNote = "";
 	//get from page
-	shiftNote = $("textarea#shift-notes").val();
+	shiftNote = $("textarea#shift_notes").val();
 	console.log("Shift note: " + shiftNote);
 	
 	var url = SCHEDULER_APP.url_clockin + '/addshiftnote';
 	//get params from page
 	var params = {
-			employeeId: 6,
-			shiftId: 1,
-			locationId: 1,
-			workedNote: shiftNote
-		}
+		workedNote: shiftNote
+	}
 
 	$.ajax({
 	    url: url,
@@ -33,10 +30,13 @@ function addshiftnote(){
 	    dataType: 'json',
 	    async: true,
 	    success: function(data) {
-	        console.log("Data: " + data.Status);
+            document.getElementById("shift_notes").style.border = "thick solid #00aa9a";
+            setTimeout(function(){
+                document.getElementById("shift_notes").style.border = "";
+			}, 2000)
 	    },
 		error: function(err) {
-	        alert("Error: " + err.responseText);
+            document.getElementById("shift_notes").style.border = "thick solid #f44336";
 	    }
 	});
 }
