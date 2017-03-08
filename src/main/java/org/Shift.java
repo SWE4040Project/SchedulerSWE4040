@@ -423,7 +423,7 @@ public class Shift {
                             "VALUES (?,?,?,?,?) " +
                             "INTO SCHEDULED_SHIFTS (employees_ID, location_ID, company_ID, scheduled_start_time, scheduled_end_time) " +
                             "VALUES (?,?,?,?,?) " +
-                            "SELECT 1 FROM DUAL "); //junk query statement as necessary for INSERT ALL syntax
+                            "SELECT 1 FROM SYSTEM "); //junk query statement as necessary for INSERT ALL syntax
 
             //current shift
             stmt.setInt(1, emp_id);

@@ -286,7 +286,7 @@ public class Employee {
 			DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
 			con = dbpool.getConnection();
 			stmt = (OraclePreparedStatement) con.prepareStatement(
-					"INSERT INTO \"SYSTEM\".\"EMPLOYEES\"(NAME, COMPANIES_EMPLOYEE_ID, COMPANIES_ID, MANAGER, SUPER_ADMIN, STATE, WEB_PASSWORD, SALT) " +
+					"INSERT INTO EMPLOYEES (NAME, COMPANIES_EMPLOYEE_ID, COMPANIES_ID, MANAGER, SUPER_ADMIN, STATE, WEB_PASSWORD, SALT) " +
 							"VALUES (?, ?, ?, '1', '0', '0', ?, ?)");
 
 			stmt.setString(1,emp.getName());
