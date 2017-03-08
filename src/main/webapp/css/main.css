@@ -30,6 +30,10 @@
 	background-color: #00aa9a;
 }
 
+#cross-icon {
+    background-color: #f44336;
+}
+
 #errorMessage {
 	display: none;
 }

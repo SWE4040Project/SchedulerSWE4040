@@ -213,6 +213,94 @@ public class Shift {
         }
     }
 
+    public static Shift getEligibleClockinShift(int employee_id, int company_id){
+        OraclePreparedStatement stmt = null;
+        Connection con = null;
+        Shift shift = null;
+        try{
+            DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+            con = dbpool.getConnection();
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "select * FROM scheduled_shifts " +
+                            "WHERE REAL_START_TIME IS NULL " +
+                            "AND EMPLOYEES_ID = ? " +
+                            "AND COMPANY_ID = ? " +
+                            "AND SCHEDULED_START_TIME >= ? " +
+                            "AND SCHEDULED_START_TIME <= ? " +
+                            "ORDER BY SCHEDULED_START_TIME");
+            stmt.setInt(1, employee_id);
+            stmt.setInt(2, company_id);
+            stmt.setTimestamp(3, getTimestampAlteredByHourAmount(-1));
+            stmt.setTimestamp(4, getTimestampAlteredByHourAmount(1));
+            ResultSet i = stmt.executeQuery();
+
+            if(i.next()){
+                shift = new Shift(
+                        i.getInt("ID"), //ID
+                        i.getInt("employees_ID"), //employee ID
+                        i.getInt("location_ID"), //location_ID
+                        i.getInt("company_id"), //location_ID
+                        i.getTimestamp("scheduled_start_time"), //scheduled_start
+                        i.getTimestamp("scheduled_end_time"), //scheduled_end
+                        i.getTimestamp("real_start_time"), //real_start
+                        i.getTimestamp("real_end_time"), //real_end
+                        i.getTimestamp("approved_start_time"), //approved_start
+                        i.getTimestamp("approved_end_time"), //approved_end
+                        i.getBoolean("available"),   //available
+                        i.getString("worked_notes") //worked_notes
+                );
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            try{stmt.close();}catch(Exception ignore){}
+            try{con.close();}catch(Exception ignore){}
+        }
+        return shift;
+    }
+
+    public static Shift getCurrentShift(int employee_id, int company_id){
+        OraclePreparedStatement stmt = null;
+        Connection con = null;
+        Shift shift = null;
+        try{
+            DatabaseConnectionPool dbpool = DatabaseConnectionPool.getInstance();
+            con = dbpool.getConnection();
+            stmt = (OraclePreparedStatement) con.prepareStatement(
+                    "select * FROM scheduled_shifts " +
+                            "WHERE REAL_START_TIME IS NOT NULL " +
+                            "AND REAL_END_TIME IS NULL " +
+                            "AND EMPLOYEES_ID = ? " +
+                            "AND COMPANY_ID = ? ");
+            stmt.setInt(1, employee_id);
+            stmt.setInt(2, company_id);
+            ResultSet i = stmt.executeQuery();
+
+            if(i.next()){
+                shift = new Shift(
+                        i.getInt("ID"), //ID
+                        i.getInt("employees_ID"), //employee ID
+                        i.getInt("location_ID"), //location_ID
+                        i.getInt("company_id"), //location_ID
+                        i.getTimestamp("scheduled_start_time"), //scheduled_start
+                        i.getTimestamp("scheduled_end_time"), //scheduled_end
+                        i.getTimestamp("real_start_time"), //real_start
+                        i.getTimestamp("real_end_time"), //real_end
+                        i.getTimestamp("approved_start_time"), //approved_start
+                        i.getTimestamp("approved_end_time"), //approved_end
+                        i.getBoolean("available"),   //available
+                        i.getString("worked_notes") //worked_notes
+                );
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            try{stmt.close();}catch(Exception ignore){}
+            try{con.close();}catch(Exception ignore){}
+        }
+        return shift;
+    }
+
     public static Shift getShiftById(int id){
         OraclePreparedStatement stmt = null;
         Connection con = null;
@@ -292,18 +380,6 @@ public class Shift {
             try{con.close();}catch(Exception ignore){}
         }
         return success;
-    }
-
-    private static Timestamp timestampFromDateString(String date){
-        String[] dateVals = date.split("-");
-        LocalDateTime dateTime = LocalDateTime.of(
-            Integer.valueOf(dateVals[0]),
-            Integer.valueOf(dateVals[1]),
-            Integer.valueOf(dateVals[2]),
-            Integer.valueOf(dateVals[3]),
-            Integer.valueOf(dateVals[4]),
-            Integer.valueOf(dateVals[5]));
-        return Timestamp.valueOf(dateTime);
     }
 
     public static void initializeDemonstrationScheduleForNewEmployee(Employee emp) throws Exception {
@@ -433,6 +509,14 @@ public class Shift {
         return timestampFromDateString(currentTimeStampString);
     }
 
+    private static Timestamp getTimestampAlteredByHourAmount(int hours){
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR_OF_DAY, hours);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        String currentTimeStampString = dateFormat.format(cal.getTime());
+        return timestampFromDateString(currentTimeStampString);
+    }
+
     private static Timestamp getTimestampAlteredByDayAmountAndSetHour(int days, int hour){
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, days);
@@ -442,5 +526,17 @@ public class Shift {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         String currentTimeStampString = dateFormat.format(cal.getTime());
         return timestampFromDateString(currentTimeStampString);
+    }
+
+    private static Timestamp timestampFromDateString(String date){
+        String[] dateVals = date.split("-");
+        LocalDateTime dateTime = LocalDateTime.of(
+                Integer.valueOf(dateVals[0]),
+                Integer.valueOf(dateVals[1]),
+                Integer.valueOf(dateVals[2]),
+                Integer.valueOf(dateVals[3]),
+                Integer.valueOf(dateVals[4]),
+                Integer.valueOf(dateVals[5]));
+        return Timestamp.valueOf(dateTime);
     }
 }

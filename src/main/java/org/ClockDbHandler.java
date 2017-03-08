@@ -1,12 +1,11 @@
 package org;
 import oracle.jdbc.OraclePreparedStatement;
-import oracle.sql.TIMESTAMP;
-import org.DatabaseConnectionPool;
 import org.Employee.Clock_State;
 
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 
 public class ClockDbHandler {
@@ -84,7 +83,22 @@ public class ClockDbHandler {
     	return false;
 	}
 
-    public String clockInWithScheduledShift(int employee_id, int shift_id, int location_id){
+	private static Timestamp getCurrentTimestamp(){
+		Calendar cal = Calendar.getInstance();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+		String date = dateFormat.format(cal.getTime());
+		String[] dateVals = date.split("-");
+		LocalDateTime dateTime = LocalDateTime.of(
+				Integer.valueOf(dateVals[0]),
+				Integer.valueOf(dateVals[1]),
+				Integer.valueOf(dateVals[2]),
+				Integer.valueOf(dateVals[3]),
+				Integer.valueOf(dateVals[4]),
+				Integer.valueOf(dateVals[5]));
+		return Timestamp.valueOf(dateTime);
+	}
+
+    public String clockInWithScheduledShift(int employee_id, int shift_id, int company_id){
     	OraclePreparedStatement stmt = null;
 		Connection con = null;
 		try {
@@ -96,11 +110,11 @@ public class ClockDbHandler {
         	System.out.println("Log: Clock_State =" + state.name());
         	
             stmt = (OraclePreparedStatement) con.prepareStatement(
-            		"update scheduled_shifts set real_start_time = ? where ID = ? and employees_ID = ? and location_ID = ? ");
-            stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
+            		"update scheduled_shifts set real_start_time = ? where ID = ? and employees_ID = ? and COMPANY_ID = ? ");
+            stmt.setTimestamp(1, getCurrentTimestamp());
             stmt.setInt(2, shift_id);
             stmt.setInt(3, employee_id);
-            stmt.setInt(4, location_id);
+            stmt.setInt(4, company_id);
             int i = stmt.executeUpdate();
             if (i <= 0){
             	return "Update of scheduled_shifts failed => employeeId "+employee_id+" and shiftId "+shift_id;
@@ -120,7 +134,7 @@ public class ClockDbHandler {
         }
     }
     
-    public String breakInWithScheduledShift(int employee_id, int shift_id, int location_id){
+    public String breakInWithScheduledShift(int employee_id, int shift_id){
     	OraclePreparedStatement stmt = null;
 		Connection con = null;
 		try {
@@ -136,7 +150,7 @@ public class ClockDbHandler {
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"INSERT INTO breaks(start_time, scheduled_shift_ID, company_id)"
             		+ "VALUES (?,?,?)");
-            stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
+			stmt.setTimestamp(1, getCurrentTimestamp());
             stmt.setInt(2, emp.getCurrent_worked_shift_id());
             stmt.setInt(3,emp.getCompany_id());
             int i = stmt.executeUpdate();
@@ -157,7 +171,7 @@ public class ClockDbHandler {
         }
     }
     
-    public String breakOutWithScheduledShift(int employee_id, int shift_id, int location_id){
+    public String breakOutWithScheduledShift(int employee_id, int shift_id){
     	OraclePreparedStatement stmt = null;
 		Connection con = null;
 		try {
@@ -173,7 +187,7 @@ public class ClockDbHandler {
             stmt = (OraclePreparedStatement) con.prepareStatement(
             		"update breaks set end_time = ? "
             		+ "where scheduled_shift_id = ?");
-            stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
+			stmt.setTimestamp(1, getCurrentTimestamp());
             stmt.setInt(2, emp.getCurrent_worked_shift_id());
             int i = stmt.executeUpdate();
             if (i <= 0){
@@ -194,7 +208,7 @@ public class ClockDbHandler {
     }
 
 
-    public String clockOutWithScheduledShift(int employee_id, int shift_id, int location_id){
+    public String clockOutWithScheduledShift(int employee_id, int shift_id, int company_id){
     	OraclePreparedStatement stmt = null;
 		Connection con = null;
 		try {
@@ -209,11 +223,11 @@ public class ClockDbHandler {
             		"update scheduled_shifts set real_end_time = ? where "
             		+ "id = ? and "
             		+ "employees_id = ? and "
-            		+ "location_id = ?");
-            stmt.setTIMESTAMP(1, new TIMESTAMP(new Date(System.currentTimeMillis())));
+            		+ "company_id = ?");
+			stmt.setTimestamp(1, getCurrentTimestamp());
             stmt.setInt(2, shift_id);
             stmt.setInt(3, employee_id);
-            stmt.setInt(4, location_id);
+            stmt.setInt(4, company_id);
             int i = stmt.executeUpdate();
             if (i <= 0){
             	return "Update of worked_shifts failed => employeeId "+employee_id+" and shiftId "+shift_id;

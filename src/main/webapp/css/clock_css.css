@@ -91,3 +91,10 @@ body {
 	height: 100%;
 	padding-top: 100px;
 }
+
+#shift_id {
+	display: none;
+}
+#noShiftMessage {
+	display: none;
+}

@@ -37,7 +37,7 @@ import javax.ws.rs.core.Response.Status;
 import org.AuthenticateDbHandler;
 import org.*;
 import org.ClockDbHandler;
-import org.ClockinParameters;
+import org.WorkedNoteParameters;
 import org.DatabaseConnectionPool;
 import org.Employee;
 import org.JsonVar;
@@ -57,6 +57,8 @@ import com.google.gson.JsonObject;
 import oracle.jdbc.OraclePreparedStatement;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.io.IOException;
 
@@ -97,19 +99,17 @@ public class ClockinResource {
 
     	Status status = Response.Status.OK;
 
-    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
-    	params.setEmployeeId(-1); //clear employeeId if one is passed.
-    	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
-    	if(empId < 0){
+		Employee emp = auth.employeeFromJWT(webTokens);
+    	if(emp == null){
     		status = Response.Status.BAD_REQUEST;
     	}
-    	params.setEmployeeId(empId);
 
-    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is clocked in.\"}";
+    	String result = "{\"Status\":\"Employee "+ emp.getId() +" is clocked in.\"}";
+
+		Shift shift = Shift.getEligibleClockinShift(emp.getId(),emp.getCompany_id());
 
 		ClockDbHandler clk = new ClockDbHandler();
-		String error = clk.clockInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+		String error = clk.clockInWithScheduledShift(emp.getId(), shift.getId(), emp.getCompany_id());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
@@ -129,19 +129,17 @@ public class ClockinResource {
 
     	Status status = Response.Status.OK;
 
-    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
-    	params.setEmployeeId(-1); //clear employeeId if one is passed.
-    	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
-    	if(empId < 0){
-    		status = Response.Status.BAD_REQUEST;
-    	}
-    	params.setEmployeeId(empId);
+		Employee emp = auth.employeeFromJWT(webTokens);
+		if(emp == null){
+			status = Response.Status.BAD_REQUEST;
+		}
 
-    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is clocked out.\"}";
+    	String result = "{\"Status\":\"Employee "+ emp.getId() +" is clocked out.\"}";
+
+		Shift shift = Shift.getCurrentShift(emp.getId(),emp.getCompany_id());
 
 		ClockDbHandler clk = new ClockDbHandler();
-		String error = clk.clockOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+		String error = clk.clockOutWithScheduledShift(emp.getId(), shift.getId(), emp.getCompany_id());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
@@ -161,19 +159,17 @@ public class ClockinResource {
 
     	Status status = Response.Status.OK;
 
-    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
-    	params.setEmployeeId(-1); //clear employeeId if one is passed.
-    	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
-    	if(empId < 0){
-    		status = Response.Status.BAD_REQUEST;
-    	}
-    	params.setEmployeeId(empId);
+		Employee emp = auth.employeeFromJWT(webTokens);
+		if(emp == null){
+			status = Response.Status.BAD_REQUEST;
+		}
 
-    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is on break.\"}";
+		String result = "{\"Status\":\"Employee "+ emp.getId() +" is on break.\"}";
+
+		Shift shift = Shift.getCurrentShift(emp.getId(),emp.getCompany_id());
 
 		ClockDbHandler clk = new ClockDbHandler();
-		String error = clk.breakInWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+		String error = clk.breakInWithScheduledShift(emp.getId(), shift.getId());
     	if( error == null || error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
@@ -193,19 +189,17 @@ public class ClockinResource {
 
     	Status status = Response.Status.OK;
 
-    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
-    	params.setEmployeeId(-1); //clear employeeId if one is passed.
-    	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
-    	if(empId < 0){
-    		status = Response.Status.BAD_REQUEST;
-    	}
-    	params.setEmployeeId(empId);
+		Employee emp = auth.employeeFromJWT(webTokens);
+		if(emp == null){
+			status = Response.Status.BAD_REQUEST;
+		}
 
-    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" is off break.\"}";
+		String result = "{\"Status\":\"Employee "+ emp.getId() +" is off break.\"}";
+
+		Shift shift = Shift.getCurrentShift(emp.getId(),emp.getCompany_id());
 
 		ClockDbHandler clk = new ClockDbHandler();
-		String error = clk.breakOutWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getLocationID());
+		String error = clk.breakOutWithScheduledShift(emp.getId(), shift.getId());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
@@ -225,19 +219,18 @@ public class ClockinResource {
 
     	Status status = Response.Status.OK;
 
-    	ClockinParameters params = gson.fromJson(obj, ClockinParameters.class);
-    	params.setEmployeeId(-1); //clear employeeId if one is passed.
-    	//parse employeeId from jsonWebToken
-    	int empId = auth.getInt(JsonVar.EMPLOYEE_ID, webTokens);
-    	if(empId < 0){
-    		status = Response.Status.BAD_REQUEST;
-    	}
-    	params.setEmployeeId(empId);
+    	WorkedNoteParameters params = gson.fromJson(obj, WorkedNoteParameters.class);
+		Employee emp = auth.employeeFromJWT(webTokens);
+		if(emp == null){
+			status = Response.Status.BAD_REQUEST;
+		}
 
-    	String result = "{\"Status\":\"Employee "+ params.getEmployeeId() +" has added or modified their shift notes.\"}";
+		String result = "{\"Status\":\"Employee "+ emp.getId() +" has modified their shift notes.\"}";
+
+		Shift shift = Shift.getCurrentShift(emp.getId(),emp.getCompany_id());
 
 		ClockDbHandler clk = new ClockDbHandler();
-		String error = clk.addNoteWithScheduledShift(params.getEmployeeId(), params.getShiftId(), params.getWorkedNote());
+		String error = clk.addNoteWithScheduledShift(emp.getId(), shift.getId(), params.getWorkedNote());
     	if( error.length() > 0 ){
     		status = Response.Status.INTERNAL_SERVER_ERROR;
     		result = "{\"Status\":\""+ error +"\"}";
@@ -780,7 +773,7 @@ public class ClockinResource {
 
 		String jsonProfile = gson.toJson(profile);
 
-		return Response.status(status).entity(jsonProfile).build();
+		return Response.status(status).entity(jsonProfile).header("Content-Type", "application/json").build();
 	}
 
 	@Path(PATH_CREATE_EMPLOYEE)
@@ -820,6 +813,71 @@ public class ClockinResource {
 
 		return Response.status(Response.Status.OK).entity(
 				"{\"Success\": \"Ok\"}"
-				).build();
+				).header("Content-Type", "application/json").build();
+	}
+
+	@Path("shifts/current")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response currentShifts(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken){
+
+		Status status = Response.Status.OK;
+
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee emp = auth.employeeFromJWT(webTokens);
+
+		System.out.println("Employee id: " + emp.getId() + " : company id: " + emp.getCompany_id());
+
+		Shift shift = null;
+		if(emp.getEmployeeClockState() == 0){
+			shift = Shift.getEligibleClockinShift(emp.getId(),emp.getCompany_id());
+		}else{
+			shift = Shift.getCurrentShift(emp.getId(),emp.getCompany_id());
+		}
+		if(shift == null){
+			return Response.status(Status.NOT_FOUND).entity(
+					"{\"Success\": \"No\"}"
+			).header("Content-Type", "application/json").build();
+		}
+
+		double progress_percentage = getProgressPercentage(shift);
+
+		JSONObject json = new JSONObject();
+		json.put("actual_start","--");
+		json.put("actual_end","--");
+		json.put("scheduled_start","--");
+		json.put("scheduled_end","--");
+		json.put("progress", progress_percentage);
+
+		if (shift.getReal_start_time() != null){
+			json.put("actual_start",(new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_start_time().getTime()));
+			System.out.println("Shift real start: " + shift.getReal_start_time());
+		}
+		if (shift.getReal_end_time() != null) {
+			json.put("actual_end", (new SimpleDateFormat("h:mm a EEEE, MMM dd")).format(shift.getReal_end_time().getTime()));
+			System.out.println("Shift real end: " + shift.getReal_end_time());
+		}
+		if (shift.getScheduled_start_time() != null) {
+			json.put("scheduled_start", (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_start_time().getTime()));
+			json.put("scheduled_day",(new SimpleDateFormat("EEEE, MMM dd")).format(shift.getScheduled_start_time().getTime()));
+			System.out.println("Shift scheduled start: " + shift.getScheduled_start_time());
+		}
+		if (shift.getScheduled_end_time() != null) {
+			json.put("scheduled_end", (new SimpleDateFormat("h:mm a")).format(shift.getScheduled_end_time().getTime()));
+			System.out.println("Shift scheduled end: " + shift.getScheduled_end_time());
+		}
+		json.put("current_time", (new SimpleDateFormat("h:mm a")).format(new java.util.Date()));
+
+		return Response.status(Response.Status.OK).entity(json.toString()).header("Content-Type", "application/json").build();
+	}
+
+	private double getProgressPercentage(Shift shift) {
+		long milliseconds1 = shift.getScheduled_start_time().getTime();
+		long milliseconds2 = shift.getScheduled_end_time().getTime();
+		long diff = Math.abs(milliseconds2 - milliseconds1);
+		long currentmilliseconds = Calendar.getInstance().getTimeInMillis();
+		long from_start = Math.abs(currentmilliseconds - milliseconds1);
+		return (from_start/(double)diff) * 100;
 	}
 }
