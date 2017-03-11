@@ -84,6 +84,7 @@ public class ClockinResource {
 	private static final String CALENDAR_SHIFT_APPROVE 	= "calendar/approve";
 	private static final String EMPLOYEE_PROFILE 	= "employee/profile";
 	private static final String PATH_CREATE_EMPLOYEE = "create/employee";
+	private static final String PATH_EMPLOYEE_STATE = "employee/state";
 
 	Gson gson = new Gson();
 
@@ -816,12 +817,30 @@ public class ClockinResource {
 				).header("Content-Type", "application/json").build();
 	}
 
+	@Path(PATH_EMPLOYEE_STATE)
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getEmployeeState(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken){
+
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee emp = auth.employeeFromJWT(webTokens);
+
+		if(emp == null){
+			return Response.status(Status.NOT_FOUND).entity(
+					"{\"state\": \"No\"}"
+			).header("Content-Type", "application/json").build();
+		}
+
+		return Response.status(Status.OK).entity(
+				"{\"state\": \""+ emp.getEmployeeClockState() +"\"}"
+		).header("Content-Type", "application/json").build();
+	}
+
 	@Path("shifts/current")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response currentShifts(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken){
-
-		Status status = Response.Status.OK;
 
 		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
 		AuthenticateDbHandler auth = new AuthenticateDbHandler();
