@@ -1,14 +1,9 @@
 package org;
 import oracle.jdbc.OraclePreparedStatement;
 import oracle.sql.TIMESTAMP;
-import org.DatabaseConnectionPool;
 import org.Employee.Clock_State;
-import org.apache.wink.rest.ArrayPOJO;
 
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 public class ClockDbHandler {
 

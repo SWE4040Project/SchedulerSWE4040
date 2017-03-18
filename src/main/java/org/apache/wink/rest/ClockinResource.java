@@ -708,7 +708,41 @@ public class ClockinResource {
 		}
 
 		//id = -1 return calendar events for the whole company, otherwise only the specified employee's shifts are returned
-		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id);
+		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id, 0);
+
+		String jsonEvents = gson.toJson(events);
+		return Response.status(status).entity(jsonEvents).build();
+	}
+
+	@Path(CALENDAR_STREAM)
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response calendarStream(@HeaderParam(JsonVar.AUTHORIZATION) String jsonWebToken, @HeaderParam(JsonVar.XSRF_TOKEN) String xsrfToken,
+								   @FormParam("start") String start, @FormParam("end") String end, @QueryParam("employee") String emp_id,
+								   @FormParam("viewType") String type, String obj){
+
+		Status status = Response.Status.OK;
+
+		WebTokens webTokens = new WebTokens(jsonWebToken.replace(JsonVar.BEARER, ""), xsrfToken);
+		AuthenticateDbHandler auth = new AuthenticateDbHandler();
+		Employee logged_in_employee = auth.employeeFromJWT(webTokens);
+
+		int viewType =  Integer.valueOf(type);
+
+		int id;
+		if(emp_id == null){
+			id = -1;
+		}else{
+			try {
+				id = Integer.parseInt(emp_id);
+			}catch (Exception e){
+				System.out.println("/calendar/load : Requested Employee Id not an integer");
+				id = -1;
+			}
+		}
+
+		//id = -1 return calendar events for the whole company, otherwise only the specified employee's shifts are returned
+		CalendarEvent[] events = CalendarEvent.getEventsForRange(start, end, logged_in_employee, id, viewType);
 
 		String jsonEvents = gson.toJson(events);
 		return Response.status(status).entity(jsonEvents).build();
