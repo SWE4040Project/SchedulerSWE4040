@@ -73,11 +73,11 @@ public class CalendarEvent {
 
         switch (viewType){
             case 0:
-                events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), emp_id);
+                events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), -1);
                 events = CalendarEvent.colourFullSchedule(events);
                 break;
             case 1:
-                events = CalendarEvent.getCurrentlyClockedInForDateRange(startDate, endDate, emp.getCompany_id(), emp_id);
+                events = CalendarEvent.getCurrentlyClockedInForDateRange(startDate, endDate, emp.getCompany_id(), -1);
                 events = CalendarEvent.colourCurrentlyWorking(events);
                 break;
             case 2:

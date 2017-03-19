@@ -17,21 +17,16 @@
    <div id="sideMenu" class="col-sm-2">
 	  <div class="sidebar-nav"><a href="#" data-toggle="collapse" data-target="#viewMenu">Views <i class="glyphicon glyphicon-chevron-down"></i></a>
 	    <ul class="nav nav-stacked collapse in" id="viewMenu">
-	        <li class="active"><a href="./admin.jsp"><i class="material-icons">developer_board</i> Database Manager</a></li>
-	        <li><a href="./admin.jsp"><i class="material-icons">group</i> Staff List</a></li>
-	    </ul>
-	  </div>
-	  <div class="sidebar-nav"><a href="#" data-toggle="collapse" data-target="#reports"> Reports <i class="glyphicon glyphicon-chevron-right"></i></a>
-	    <ul class="nav nav-stacked collapse" id="reports">
-	        <li><a href="#">Create</a></li>
-	        <li><a href="#">Views</a></li>
+	        <li><a onclick=togglePages("calendar")><i class="material-icons">group</i> Calendar</a></li>
+	        <li><a onclick=togglePages("db_manager")><i class="material-icons">group</i> Database Manager</a></li>
+	        <li><a onclick=togglePages("csv")><i class="material-icons">group</i> CSV</a></li>
 	    </ul>
 	  </div>
    </div>
    <!-- /#sidebar-wrapper -->
 
 <div id="mainContent" class="col-sm-10">
-    <div id="db_manager">
+    <div id="db_manager" style="display: none;">
         <ul class="nav navbar-nav">
            <li class="dropdown">
              <a href="bootstrap-elements.html" data-target="#" class="dropdown-toggle" data-toggle="dropdown" id="dropdownLabel"><h3>EMPLOYEES Tables
@@ -59,9 +54,9 @@
         </table>
     </div>
     <%--Calendar is loaded dynamically by calendarInit() in admin.js--%>
-    <div id="calendar"></div>
+    <div id="calendar" style="display: block"></div>
 
-    <div style="display: flex">
+    <div id="csv" style="display: none;">
         <div id="csv_upload" style="width: 400px">
             <h1>Employee CSV Upload</h1>
             <form id="csv_upload_form" method="post" action="rest/csv_upload" enctype="multipart/form-data">
