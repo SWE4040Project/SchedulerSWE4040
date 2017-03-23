@@ -79,6 +79,10 @@
 	    <url-pattern>/admin.jsp</url-pattern> <!-- url from where you implement the filtering -->
 	</filter-mapping>
 
+	<listener>
+		<listener-class>org.listener.PushNotificationListener</listener-class>
+	</listener>
+
 	<servlet>
 		<servlet-name>restSdkService</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
@@ -98,31 +102,9 @@
 		<servlet-name>restSdkService</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
-	
+
 	<welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-    
-    <!-- Require HTTPS for everything except /img (favicon) and /css. -->
-    <!--<security-constraint>
-        <web-resource-collection>
-            <web-resource-name>HTTPSOnly</web-resource-name>
-            <url-pattern>/*</url-pattern>
-        </web-resource-collection>
-        <user-data-constraint>
-            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
-        </user-data-constraint>
-    </security-constraint>
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>HTTPSOrHTTP</web-resource-name>
-            <url-pattern>*.ico</url-pattern>
-            <url-pattern>/images/*</url-pattern>
-            <url-pattern>/css/*</url-pattern>
-            <url-pattern>/js/*</url-pattern>
-        </web-resource-collection>
-        <user-data-constraint>
-            <transport-guarantee>NONE</transport-guarantee>
-        </user-data-constraint>
-    </security-constraint>-->
+
 </web-app>

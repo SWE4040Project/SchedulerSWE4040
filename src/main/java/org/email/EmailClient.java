@@ -3,6 +3,8 @@ package org.email;
 /**
  * Created by Brent on 2017-03-02.
  */
+import org.email.EmailVar;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Properties;
@@ -23,16 +25,11 @@ import javax.mail.internet.MimeMessage;
  *
  */
 public class EmailClient {
-    public static void sendEmail(String host, String port,
-                                 final String userName, final String password, String toAddress,
-                                 String subject, String message) throws AddressException,
-            MessagingException {
+    public static void sendEmail(String toAddress, String subject, String message)
+            throws AddressException, MessagingException {
 
-        host = "smtp.gmail.com";
-        port = "587";
-        toAddress = "brent.simmons@unb.ca";
-        subject = "Hello World";
-        message = "Sending email via JavaMail API";
+        String host = "smtp.gmail.com";
+        String port = "587";
 
         // sets SMTP server properties
         Properties properties = new Properties();
@@ -44,7 +41,7 @@ public class EmailClient {
         // creates a new session with an authenticator
         Authenticator auth = new Authenticator() {
             public PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("bsimmons367@gmail.com", "gottogo2");
+                return new PasswordAuthentication(EmailVar.DEV_EMAIL_USERNAME, EmailVar.DEV_EMAIL_PASSWORD);
             }
         };
 

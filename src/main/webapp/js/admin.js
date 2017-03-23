@@ -9,19 +9,71 @@ $(document).ready(function() {
 	
 	load_data('employees');
 });
-
+function getViewType(){
+	return viewType
+}
+var viewType = 0; //full schedule
 function calendarInit(){
 	$('#calendar').fullCalendar({
 		eventSources: [{
 				url : "rest/calendar/load",
-				type: "GET",
+				type: "POST",
 				headers: {
 					'Authorization':sessionStorage.getItem(SCHEDULER_APP.authorization),
 					'xsrfToken': sessionStorage.getItem(SCHEDULER_APP.xsrfTokenName)
+				},
+				data: function () {
+					return {
+						viewType: getViewType()
+					}
 				}
 			}
 		],
 		nextDayThreshold: "06:00:00",
+		customButtons: {
+			fullSchedule: {
+				text: "Full Schedule",
+				click: function () {
+					viewType = 0;
+					this.parentElement.childNodes[0].classList.remove("fc-state-active");
+					this.parentElement.childNodes[1].classList.remove("fc-state-active");
+					this.parentElement.childNodes[2].classList.remove("fc-state-active");
+					this.classList.add("fc-state-active");
+					$('#calendar').fullCalendar( 'refetchEvents' );
+				}
+			},
+			mySchedule: {
+				text: "My Schedule",
+				click: function () {
+					viewType = 2;
+					this.parentElement.childNodes[0].classList.remove("fc-state-active");
+					this.parentElement.childNodes[1].classList.remove("fc-state-active");
+					this.parentElement.childNodes[2].classList.remove("fc-state-active");
+					this.classList.add("fc-state-active");
+					$('#calendar').fullCalendar( 'refetchEvents' );
+				}
+			},
+			currentlyWorking: {
+				text: "Working Now",
+				click: function () {
+					viewType = 1;
+					this.parentElement.childNodes[0].classList.remove("fc-state-active");
+					this.parentElement.childNodes[1].classList.remove("fc-state-active");
+					this.parentElement.childNodes[2].classList.remove("fc-state-active");
+					this.classList.add("fc-state-active");
+					$('#calendar').fullCalendar( 'refetchEvents' );
+				}
+			}
+		},
+		header: {
+			left: 'month,agendaWeek,agendaDay today prev,next',
+			center: 'title',
+			right: 'fullSchedule,mySchedule,currentlyWorking'
+		},
+		allDayDefault: false,
+		slotEventOverlap: false,
+		allDaySlot: false,
+		eventLimit: 4,
 
 		eventRender: function (event, element) {
 			element.attr('href', 'javascript:void(0);');
@@ -58,6 +110,23 @@ function calendarInit(){
 			});
 		}
 	})
+	document.getElementsByClassName("fc-fullSchedule-button")[0].classList.add("fc-state-active");
+}
+
+function togglePages(page){
+	if(page=="calendar"){
+		document.getElementById("db_manager").style.display='none';
+		document.getElementById("calendar").style.display='block';
+		document.getElementById("csv").style.display='none';
+	}else if(page=="csv"){
+		document.getElementById("db_manager").style.display='none';
+		document.getElementById("calendar").style.display='none';
+		document.getElementById("csv").style.display='block';
+	}else if(page=="db_manager"){
+		document.getElementById("db_manager").style.display='block';
+		document.getElementById("calendar").style.display='none';
+		document.getElementById("csv").style.display='none';
+	}
 }
 // function form_submit() {
 // 	$('#fileupload').fileupload({

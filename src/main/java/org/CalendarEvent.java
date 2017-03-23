@@ -21,42 +21,71 @@ public class CalendarEvent {
     private int id;
     private int employee_id;
     private String title;
-    private String allDay;
+    //private String allDay;
     private String start;
     private String end;
     private String color;
+    private String available;
     private String note;
     private String editable;
+    private String scheduled_start;
+    private String scheduled_end;
     private String real_start;
     private String real_end;
+    private String approved_start;
+    private String approved_end;
 
     public CalendarEvent(int id, int employee_id, String title, boolean allDay, Timestamp start, Timestamp end, boolean available,
-                         Timestamp approved_start, Timestamp real_start, Timestamp real_end, String notes){
+                         Timestamp approved_start, Timestamp approved_end, Timestamp real_start, Timestamp real_end, String notes){
         this.id = id;
         this.employee_id = employee_id;
         this.title = (title == null)? "Available" : title;
         this.title = this.title.concat("  "+hours(start, end));
-        this.allDay = allDay? "true" : "false";
-        this.start = getISO8601StringForDate(start);
-        this.end = getISO8601StringForDate(end);
+        //this.allDay = allDay? "true" : "false";
+        this.start = (start==null)? getISO8601StringForDate(real_start) : getISO8601StringForDate(start);
+        this.end = (end==null)? getISO8601StringForDate(real_end) : getISO8601StringForDate(end);
+        this.scheduled_start = getISO8601StringForDate(start);
+        this.scheduled_end = getISO8601StringForDate(end);
         this.real_start = getISO8601StringForDate(real_start);
         this.real_end = getISO8601StringForDate(real_end);
-        if(available){
-            this.color = "grey";
-        }else{
-            if(approved_start == null){
-                this.color = "orange";
-            }else{
-                this.color = "green";
-            }
-        } this.note = notes;
+        this.approved_start = getISO8601StringForDate(approved_start);
+        this.approved_end = getISO8601StringForDate(approved_end);
+        this.available = available? "true" : "false";
+        this.color = "green";
+        this.note = notes;
         this.editable = "true";
     }
 
-    public static CalendarEvent[] getEventsForRange(String start, String end, Employee emp, int emp_id){
+    public String getApprovedStart(){
+        return approved_start;
+    }
+
+    public String getAvailable(){ return available; }
+
+    public void setColor(String color){
+        this.color = color;
+    }
+
+    public static CalendarEvent[] getEventsForRange(String start, String end, Employee emp, int emp_id, int viewType){
         Timestamp startDate = timestampFromDateString(start);
         Timestamp endDate = timestampFromDateString(end);
-        CalendarEvent[] events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), emp_id);
+        CalendarEvent[] events = null;
+
+        switch (viewType){
+            case 0:
+                events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), -1);
+                events = CalendarEvent.colourFullSchedule(events);
+                break;
+            case 1:
+                events = CalendarEvent.getCurrentlyClockedInForDateRange(startDate, endDate, emp.getCompany_id(), -1);
+                events = CalendarEvent.colourCurrentlyWorking(events);
+                break;
+            case 2:
+                events = CalendarEvent.getShiftsForDateRange(startDate, endDate, emp.getCompany_id(), emp.getId());
+        }
+
+
+
         return  events;
     }
 
@@ -85,7 +114,8 @@ public class CalendarEvent {
         String sql = "select shift.*, emp.NAME FROM scheduled_shifts shift " +
                 "LEFT JOIN employees emp ON shift.employees_ID = emp.ID " +
                 "WHERE shift.COMPANY_ID = ? AND shift.SCHEDULED_START_TIME >= ? AND shift.SCHEDULED_START_TIME <= ?";
-        return getCalendarEvents(sql, start, end, company_id, employee_id);
+        CalendarEvent[] events =  getCalendarEvents(sql, start, end, company_id, employee_id);
+        return events;
     }
 
     private static CalendarEvent[] getWorkedShiftsForDateRange(Timestamp start, Timestamp end, int company_id, int employee_id){
@@ -140,11 +170,12 @@ public class CalendarEvent {
                         i.getInt("ID"), //ID
                         i.getInt("employees_id"),
                         i.getString("NAME"),
-                        true,
+                        false,
                         i.getTimestamp("scheduled_start_time"), //scheduled_start
                         i.getTimestamp("scheduled_end_time"), //scheduled_end
-                        i.getBoolean("available")? true : false,   //available
+                        i.getBoolean("available"),   //available
                         i.getTimestamp("approved_start_time"), //approved_start
+                        i.getTimestamp("approved_end_time"), //approved_start
                         i.getTimestamp("real_start_time"),
                         i.getTimestamp("real_end_time"),
                         i.getString("worked_notes") //worded_notes
@@ -160,5 +191,32 @@ public class CalendarEvent {
             eventsArray = events.toArray(eventsArray);
             return eventsArray;
         }
+    }
+
+    private static CalendarEvent[] colourFullSchedule(CalendarEvent[] events){
+        for(CalendarEvent e : events){
+            if(e.available.equals("true")){
+                e.color = "grey";
+            }else{
+                if(e.getApprovedStart().equals("")){
+                    e.color = "orange";
+                }else{
+                    e.color = "green";
+                }
+            }
+
+        }
+        return events;
+    }
+
+    private static CalendarEvent[] colourCurrentlyWorking(CalendarEvent[] events){
+        for(CalendarEvent e : events){
+            if(e.scheduled_start.equals("")){
+                e.color = "orange";
+            }else{
+                e.color = "green";
+            }
+        }
+        return events;
     }
 }

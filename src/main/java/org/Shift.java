@@ -429,8 +429,12 @@ public class Shift {
             stmt.setInt(1, emp_id);
             stmt.setInt(2, LOCATION);
             stmt.setInt(3, COMPANY);
-            stmt.setTimestamp(4, getTimestampAlteredByDayAmount(0));
-            stmt.setTimestamp(5, getTimestampAlteredByDayAmountAndSetHour(0,18));
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MINUTE, 5); // five minutes in advance
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+            String currentTimeString = dateFormat.format(cal.getTime());
+            stmt.setTimestamp(4, timestampFromDateString(currentTimeString));
+            stmt.setTimestamp(5, getTimestampAlteredByDayAmountAndSetHour(0,22));
 
             //one day past
             stmt.setInt(6, emp_id);
